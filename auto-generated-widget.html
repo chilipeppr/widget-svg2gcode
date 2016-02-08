@@ -234,8 +234,9 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             // draw the major components of the beer bot
             var main = new THREE.Object3D();
             
+            
             // create base box
-            var geometry = new THREE.BoxGeometry( 500, 700, 20 );
+            var baseGeo = new THREE.BoxGeometry( 500, 700, 20 );
             // var material = new THREE.MeshNormalMaterial({
             //         color: 0xd78356,
             //         transparent: true,
@@ -243,7 +244,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             //         side: THREE.SingleSide,
             //         depthWrite: false
             //     });
-            var material = new THREE.MeshPhongMaterial({
+            var baseMat = new THREE.MeshPhongMaterial({
                     color: 0xd5d3cb,
                     // transparent: true,
                     // opacity: 0.99,
@@ -259,17 +260,48 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             //         depthWrite: false
             //     });
             //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-            var cube = new THREE.Mesh( geometry, material );
-            cube.position.setZ(-10);
-            //main.add( cube );
+            var baseMesh = new THREE.Mesh( baseGeo, baseMat );
+            baseMesh.position.setZ(-10);
+            //main.add( baseMesh );
             
-            // draw lazy susan cylinder
+            // alternate drawing of box as extrude
+            var rectLength = 500, rectWidth = 700;
+			var rectShape = new THREE.Shape();
+			rectShape.moveTo( 0,0 );
+			rectShape.lineTo( 0, rectWidth );
+			rectShape.lineTo( rectLength, rectWidth );
+			rectShape.lineTo( rectLength, 0 );
+			rectShape.lineTo( 0, 0 );
+			var extrudeSettings = { 
+                amount: 30, bevelEnabled: true, bevelSegments: 2, steps: 2, 
+                bevelSize: 3, bevelThickness: 3 };
+			var geometry = new THREE.ExtrudeGeometry( rectShape, extrudeSettings );
+
+			var rectMesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
+			    color: color,
+			 //   side: THREE.SingleSide
+		    } ) );
+		    rectMesh.position.setX(-rectLength/2);
+		    rectMesh.position.setY(-rectWidth/2);
+		    rectMesh.position.setY(rectMesh.position.y + 100);
+		    rectMesh.position.setZ(-15);
+		    rectMesh.receiveShadow = true;
+		    rectMesh.name = "Base Box";
+		    main.add(rectMesh);
+            
+            // draw lazy susan group
+            var lazySusanGroup = new THREE.Object3D();
+            
             geometry = new THREE.CylinderGeometry( 450 / 2, 450 / 2, 20, 32 );
+            var color = 0x938a79;
             var lazySusanMaterial = new THREE.MeshPhongMaterial({
-                    color: 0x938a79,
+                    color: color,
                     // transparent: true,
                     // opacity: 0.2,
-                    side: THREE.DoubleSide,
+                    // side: THREE.DoubleSide,
+                    // polygonOffset: true,
+                    // polygonOffsetFactor: 2,
+                    // polygonOffsetUnits: 0.5,
                     // depthTest: false,
                     // depthWrite: false
                 });
@@ -281,7 +313,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             
             var shape = new THREE.Shape();
             shape.absellipse(0, 0, 450 / 2, 450 / 2, 0, Math.PI * 2);
-            shape.autoClose = true;
+            //shape.autoClose = true;
             
             // let's make a circle with 8 segments so we can extract the xy val for each vertex
             var radius = 350 / 2;
@@ -292,23 +324,265 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
                 
                 var pt = holeCenterGeometry.vertices[hi + 1]
                 var hole = new THREE.Path();
-                hole.absellipse(pt.x, pt.y, 85/2, 85/2, 0, Math.PI * 2);
+                hole.absellipse(pt.x, pt.y, 85/2, 85/2, 0, Math.PI * 2, true);
                 shape.holes.push(hole);
             }
             
-            var extrudeSettings = { amount: 18, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-            var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-            var lazysusan = new THREE.Mesh( geometry, lazySusanMaterial );
-            lazysusan.position.setZ(10);
-            lazysusan.position.setY(-100);
-            main.add(lazysusan);
+            // var geometry = new THREE.ShapeGeometry( shape );
+
+// 			var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
+			 //   color: color, side: THREE.DoubleSide } ) );
+// 			mesh.position.set( x, y, z - 125 );
+// 			mesh.rotation.set( rx, ry, rz );
+// 			mesh.scale.set( s, s, s );
+// 			main.add( mesh );
+            
+            // extruded shape
+            var extrudeSettings = { 
+                amount: 30, bevelEnabled: true, bevelSegments: 2, steps: 2, 
+                bevelSize: 2.5, bevelThickness: 2.5 };
+			var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+			var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
+			    color: color,
+			    depthTest: true, 
+                depthWrite: true, 
+                polygonOffset: true,
+                polygonOffsetFactor: -4
+			 //   side: THREE.SingleSide
+		    } ) );
+// 			mesh.position.set( x, y, z - 75 );
+// 			mesh.rotation.set( rx, ry, rz );
+// 			mesh.scale.set( s, s, s );
+            mesh.position.setZ(40);
+            //mesh.position.setY(-100);
+            mesh.castShadow = true;
+            mesh.name = "Lazy Susan";
+			lazySusanGroup.add( mesh );
+			
+			// Red solo cups
+			var redCupGroup = new THREE.Object3D();
+			
+			var redCupGeo = new THREE.CylinderGeometry( 45, 35, 100, 32 );
+			var color = 0x8B0000;
+            var redCupMat = new THREE.MeshPhongMaterial({
+                    color: color,
+                    // transparent: true,
+                    // opacity: 0.2,
+                    // side: THREE.DoubleSide,
+                    // polygonOffset: true,
+                    // polygonOffsetFactor: 2,
+                    // polygonOffsetUnits: 0.5,
+                    // depthTest: false,
+                    // depthWrite: false
+                });
+                
+            var ptZero = new THREE.Vector3(0,0,0);
+            for(var i in holeCenterGeometry.vertices) {
+                if (i == 0 || i == 9) continue;
+                var pt = holeCenterGeometry.vertices[i];
+                var redCupMesh = new THREE.Mesh( redCupGeo, redCupMat );
+                redCupMesh.rotateX(Math.PI / 2);
+                redCupMesh.position.set(pt.x, pt.y, 0);
+                redCupGroup.add(redCupMesh);
+                
+                // add cup numbers
+                var numMesh = this.makeText(
+                    {text:i, height:3, x:pt.x, y:pt.y, z:80, size:30}
+                );
+                // need to center
+                
+                numMesh.rotateX(Math.PI / 2);
+                
+                // create grp cuz i don't know how to apply 2 rotations
+                // but the group does it for me
+                var numGrp = new THREE.Object3D();
+                numGrp.add(numMesh);
+                
+                //var pt2 = new THREE.Vector2(pt.x, pt.y);
+                // computes the angle in radians with respect to the positive x-axis
+        		var angleto = Math.atan2( pt.y, pt.x );
+        		if ( angleto < 0 ) angleto += 2 * Math.PI;
+                //numMesh.rotateZ(angle);
+                var pt3 = new THREE.Vector3(pt.x, pt.y, 0);
+                pt3.normalize();
+                console.log("pt3:", pt3, "ptZero:", ptZero);
+                //var v = ptZero;
+                //var theta = pt3.dot( v ) / ( Math.sqrt( pt3.lengthSq() * v.lengthSq() ) );
+                //var angleto = theta; //pt3.angleTo(ptZero);
+                //var angleto = ptZero.angleTo(pt3);
+                console.log("angleto:", angleto);
+                //numGrp.rotateZ(angleto);
+                //numGrp.rotateZ(Math.PI / 2);
+                //numGrp.position.set(pt.x, pt.y, 0);
+                
+                redCupGroup.add(numGrp);
+            }
+            redCupGroup.position.setZ(70);
+            lazySusanGroup.add( redCupGroup );
+            
+			
+			main.add(lazySusanGroup);
+			
+            // var extrudeSettings = { amount: 18, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+            // var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+            // var lazysusan = new THREE.Mesh( geometry, lazySusanMaterial );
+            // lazysusan.position.setZ(10);
+            // lazysusan.position.setY(-100);
+            //main.add(lazysusan);
+
+            // remove the grid
+            this.obj3dmeta.widget.gridTurnOff();
             
             this.mySceneGroup = main;
             this.sceneReAddMySceneGroup();
+            this.obj3dmeta.camera.far = 5000;
+            this.obj3dmeta.camera.near = 10;
+            console.log("beerbot three obj:", this.obj3d, "objmeta:", this.obj3dmeta);
             
-            // remove the grid
-            this.obj3dmeta.widget.gridTurnOff();
             chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
+            
+        },
+        createText: function(text, options) {
+            
+            // taken from http://threejs.org/examples/webgl_geometry_text.html
+            
+            /*
+			textGeo = new THREE.TextGeometry( text, {
+
+				font: options.font ? options.font : "",
+
+				size: size,
+				height: height,
+				curveSegments: curveSegments,
+
+				bevelThickness: bevelThickness,
+				bevelSize: bevelSize,
+				bevelEnabled: bevelEnabled,
+
+				material: 0,
+				extrudeMaterial: 1
+
+			});
+
+			textGeo.computeBoundingBox();
+			textGeo.computeVertexNormals();
+
+			// "fix" side normals by removing z-component of normals for side faces
+			// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
+
+			if ( ! bevelEnabled ) {
+
+				var triangleAreaHeuristics = 0.1 * ( height * size );
+
+				for ( var i = 0; i < textGeo.faces.length; i ++ ) {
+
+					var face = textGeo.faces[ i ];
+
+					if ( face.materialIndex == 1 ) {
+
+						for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
+
+							face.vertexNormals[ j ].z = 0;
+							face.vertexNormals[ j ].normalize();
+
+						}
+
+						var va = textGeo.vertices[ face.a ];
+						var vb = textGeo.vertices[ face.b ];
+						var vc = textGeo.vertices[ face.c ];
+
+						var s = THREE.GeometryUtils.triangleArea( va, vb, vc );
+
+						if ( s > triangleAreaHeuristics ) {
+
+							for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
+
+								face.vertexNormals[ j ].copy( face.normal );
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+			var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+
+			textMesh1 = new THREE.Mesh( textGeo, material );
+
+			textMesh1.position.x = centerOffset;
+			textMesh1.position.y = hover;
+			textMesh1.position.z = 0;
+
+			textMesh1.rotation.x = 0;
+			textMesh1.rotation.y = Math.PI * 2;
+
+			group.add( textMesh1 );
+
+			if ( mirror ) {
+
+				textMesh2 = new THREE.Mesh( textGeo, material );
+
+				textMesh2.position.x = centerOffset;
+				textMesh2.position.y = -hover;
+				textMesh2.position.z = height;
+
+				textMesh2.rotation.x = Math.PI;
+				textMesh2.rotation.y = Math.PI * 2;
+
+				group.add( textMesh2 );
+
+			}
+			*/
+
+		},
+        /**
+         * Pass in vals {
+         *   color: 0xff0000, // default 0x999999
+         *   text: "asdf",
+         *   height: 10, // default 1
+         *   size: 5, // default 10
+         *   x: 0,
+         *   y: 0,
+         *   z: 0,
+         * }
+         */
+        makeText: function(vals) {
+            var shapes, geom, mat, mesh;
+            
+            console.log("Do we have the global ThreeHelvetiker font:", ThreeHelvetiker);
+            console.log("THREE.FontUtils:", THREE.FontUtils);
+            
+            if (!THREE.FontUtils) {
+                console.error("THREE.FontUtils not defined per bug in r73 of three.js. So not making text.");
+                return;
+            }
+            
+            THREE.FontUtils.loadFace(ThreeHelvetiker);
+            shapes = THREE.FontUtils.generateShapes( vals.text, {
+                font: "helvetiker",
+                height: vals.height ? vals.height : 1,
+                //weight: "normal",
+                size: vals.size ? vals.size : 10
+            } );
+            geom = new THREE.ShapeGeometry( shapes );
+            mat = new THREE.MeshPhongMaterial({
+                color: vals.color ? vals.color : 0x999999,
+                side: THREE.DoubleSide,
+                // transparent: true,
+                // opacity: vals.opacity ? vals.opacity : 0.5,
+            });
+            mesh = new THREE.Mesh( geom, mat );
+            
+            mesh.position.x = vals.x;
+            mesh.position.y = vals.y;
+            mesh.position.z = vals.z;
+            
+            return mesh;
             
         },
         onInit3dSuccess: function () {

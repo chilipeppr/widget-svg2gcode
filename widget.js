@@ -52,8 +52,34 @@ cprequire_test(["inline:com-zipwhip-widget-beerbot"], function(myWidget) {
 
     console.log("test running of " + myWidget.id);
 
-    $('body').prepend('<div id="testDivForFlashMessageWidget"></div>');
+    
+    
+    // load 3dviewer
+    // have to tweak our own widget to get it above the 3dviewer
+    $('#' + myWidget.id).css('position', 'relative');
+    //$('#' + myWidget.id).css('background', 'none');
+    $('#' + myWidget.id).css('width', '320px');
+    $('body').prepend('<div id="3dviewer"></div>');
+    chilipeppr.load(
+      "#3dviewer",
+      "http://raw.githubusercontent.com/chilipeppr/widget-3dviewer/master/auto-generated-widget.html",
+      function() {
+        cprequire(['inline:com-chilipeppr-widget-3dviewer'], function (threed) {
+            threed.init({
+                doMyOwnDragDrop: false
+            });
+            
+            // hide toolbar for room
+            $('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
+            
+            // only init eagle widget once 3d is loaded
+            // init my widget
+            myWidget.init();
+        });
+    });
 
+    // load flash message
+    $('body').prepend('<div id="testDivForFlashMessageWidget"></div>');
     chilipeppr.load(
         "#testDivForFlashMessageWidget",
         "http://fiddle.jshell.net/chilipeppr/90698kax/show/light/",
@@ -65,10 +91,8 @@ cprequire_test(["inline:com-zipwhip-widget-beerbot"], function(myWidget) {
             });
         }
     );
-
-    // init my widget
-    myWidget.init();
-    $('#' + myWidget.id).css('margin', '10px');
+    
+    $('#' + myWidget.id).css('margin', '20px');
     $('title').html(myWidget.name);
 
 } /*end_test*/ );
@@ -116,6 +140,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             // Define a key:value pair here as strings to document what signals you publish to
             // that are owned by foreign/other widgets.
             // '/jsonSend': 'Example: We send Gcode to the serial port widget to do stuff with the CNC controller.'
+            "/com-chilipeppr-widget-3dviewer/request3dObject" : "This gives us back the 3d object from the 3d viewer so we can add Three.js objects to it."
         },
         /**
          * Document the foreign subscribe signals, i.e. signals owned by other widgets
@@ -125,6 +150,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             // Define a key:value pair here as strings to document what signals you subscribe to
             // that are owned by foreign/other widgets.
             // '/com-chilipeppr-elem-dragdrop/ondropped': 'Example: We subscribe to this signal at a higher priority to intercept the signal. We do not let it propagate by returning false.'
+            "/com-chilipeppr-widget-3dviewer/recv3dObject" : "By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects."
         },
         /**
          * All widgets should have an init method. It should be run by the
@@ -133,11 +159,185 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
         init: function() {
             console.log("I am being initted. Thanks.");
 
+            this.init3d();
+            
             this.setupUiFromLocalStorage();
             this.btnSetup();
             this.forkSetup();
 
             console.log("I am done being initted.");
+        },
+        /**
+         * Try to get a reference to the 3D viewer.
+         */
+        init3d: function () {
+            this.get3dObj();
+            if (this.obj3d == null) {
+                console.log("loading 3d scene failed, try again in 1 second");
+                var attempts = 1;
+                var that = this;
+                setTimeout(function () {
+                    that.get3dObj();
+                    if (that.obj3d == null) {
+                        attempts++;
+                        setTimeout(function () {
+                            that.get3dObj();
+                            if (that.obj3d == null) {
+                                console.log("giving up on trying to get 3d");
+                            } else {
+                                console.log("succeeded on getting 3d after attempts:", attempts);
+                                that.onInit3dSuccess();
+                            }
+                        }, 5000);
+                    } else {
+                        console.log("succeeded on getting 3d after attempts:", attempts);
+                        that.onInit3dSuccess();
+                    }
+                }, 1000);
+            } else {
+                this.onInit3dSuccess();
+            }
+
+        },
+        drawBeerBot: function() {
+            // draw the major components of the beer bot
+            var main = new THREE.Object3D();
+            
+            // create base box
+            var geometry = new THREE.BoxGeometry( 500, 700, 20 );
+            // var material = new THREE.MeshNormalMaterial({
+            //         color: 0xd78356,
+            //         transparent: true,
+            //         opacity: 0.99,
+            //         side: THREE.SingleSide,
+            //         depthWrite: false
+            //     });
+            var material = new THREE.MeshPhongMaterial({
+                    color: 0xd5d3cb,
+                    // transparent: true,
+                    // opacity: 0.99,
+                    // side: THREE.DoubleSide,
+                    // shading: THREE.FlatShading,
+                    // depthWrite: true
+                });
+            // var material = new THREE.MeshBasicMaterial({
+            //         color: 0xd78356,
+            //         transparent: true,
+            //         opacity: 0.99,
+            //         side: THREE.SingleSide,
+            //         depthWrite: false
+            //     });
+            //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+            var cube = new THREE.Mesh( geometry, material );
+            cube.position.setZ(-10);
+            //main.add( cube );
+            
+            // draw lazy susan cylinder
+            geometry = new THREE.CylinderGeometry( 450 / 2, 450 / 2, 20, 32 );
+            var lazySusanMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x938a79,
+                    // transparent: true,
+                    // opacity: 0.2,
+                    side: THREE.DoubleSide,
+                    // depthTest: false,
+                    // depthWrite: false
+                });
+            // var cylinder = new THREE.Mesh( geometry, material );
+            // cylinder.rotateX(Math.PI / 2);
+            // cylinder.position.setZ(11);
+            // cylinder.position.setY(-100);
+            //main.add( cylinder );
+            
+            var shape = new THREE.Shape();
+            shape.absellipse(0, 0, 450 / 2, 450 / 2, 0, Math.PI * 2);
+            shape.autoClose = true;
+            
+            // let's make a circle with 8 segments so we can extract the xy val for each vertex
+            var radius = 350 / 2;
+            var segments = 8;
+            var holeCenterGeometry = new THREE.CircleGeometry( radius, segments );
+
+            for (var hi = 0; hi < 8; hi++) {
+                
+                var pt = holeCenterGeometry.vertices[hi + 1]
+                var hole = new THREE.Path();
+                hole.absellipse(pt.x, pt.y, 85/2, 85/2, 0, Math.PI * 2);
+                shape.holes.push(hole);
+            }
+            
+            var extrudeSettings = { amount: 18, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+            var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+            var lazysusan = new THREE.Mesh( geometry, lazySusanMaterial );
+            lazysusan.position.setZ(10);
+            lazysusan.position.setY(-100);
+            main.add(lazysusan);
+            
+            this.mySceneGroup = main;
+            this.sceneReAddMySceneGroup();
+            
+            // remove the grid
+            this.obj3dmeta.widget.gridTurnOff();
+            chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
+            
+        },
+        onInit3dSuccess: function () {
+            console.log("onInit3dSuccess. That means we finally got an object back.");
+            this.clear3dViewer();
+            
+            // open the last file
+            //var that = this;
+            //setTimeout(function () {
+                //that.open();
+            //}, 1000);
+            this.drawBeerBot();
+        },
+        obj3d: null, // gets the 3dviewer obj stored in here on callback
+        obj3dmeta: null, // gets metadata for 3dviewer
+        userCallbackForGet3dObj: null,
+        get3dObj: function (callback) {
+            this.userCallbackForGet3dObj = callback;
+            chilipeppr.subscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this, this.get3dObjCallback);
+            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/request3dObject", "");
+            chilipeppr.unsubscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this.get3dObjCallback);
+        },
+        get3dObjCallback: function (data, meta) {
+            console.log("got 3d obj:", data, meta);
+            this.obj3d = data;
+            this.obj3dmeta = meta;
+            if (this.userCallbackForGet3dObj) {
+                //setTimeout(this.userCallbackForGet3dObj.bind(this), 200);
+                //console.log("going to call callback after getting back the new 3dobj. this.userCallbackForGet3dObj:", this.userCallbackForGet3dObj);
+                this.userCallbackForGet3dObj();
+                this.userCallbackForGet3dObj = null;
+            }
+        },
+        is3dViewerReady: false,
+        clear3dViewer: function () {
+            console.log("clearing 3d viewer");
+            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneclear");
+            //if (this.obj3d) this.obj3d.children = [];            
+            /*
+            this.obj3d.children.forEach(function(obj3d) {
+                chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneremove", obj3d);
+            });
+            */
+            this.is3dViewerReady = true;
+            
+            // this should reset the 3d viewer to resize to high dpi displays
+            $(window).trigger("resize");
+        },
+        mySceneGroup: null,
+        sceneReAddMySceneGroup: function() {
+            if (this.obj3d && this.mySceneGroup) {
+                this.obj3d.add(this.mySceneGroup);
+            }
+            this.obj3dmeta.widget.wakeAnimate();
+        },
+        sceneRemoveMySceneGroup: function() {
+            if (this.obj3d && this.mySceneGroup) {
+                this.obj3d.remove(this.mySceneGroup);
+            }
+            this.obj3dmeta.widget.wakeAnimate();
         },
         /**
          * Call this method from init to setup all the buttons when this widget

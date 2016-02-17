@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-    <title>textabeer</title>
+    <title>Widget / Texterator</title>
 
     <!-- ChiliPeppr is based on bootstrap CSS. -->
     <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -16,11 +16,11 @@
     <style type='text/css'>
 /* CSS for ChiliPeppr Widget */
 
-#com-zipwhip-widget-beerbot {
+#com-zipwhip-widget-texterator {
    
 }
 
-#com-zipwhip-widget-beerbot .nav-tabs>li>a {
+#com-zipwhip-widget-texterator .nav-tabs>li>a {
     padding: 2px 6px;
 }
 
@@ -65,7 +65,7 @@ requirejs.config({
     }
 });
 
-cprequire_test(["inline:com-zipwhip-widget-beerbot"], function(myWidget) {
+cprequire_test(["inline:com-zipwhip-widget-texterator"], function(myWidget) {
 
     // Test this element. This code is auto-removed by the chilipeppr.load()
     // when using this widget in production. So use the cpquire_test to do things
@@ -129,18 +129,18 @@ cprequire_test(["inline:com-zipwhip-widget-beerbot"], function(myWidget) {
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
-cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other dependencies here */ ], function() {
+cpdefine("inline:com-zipwhip-widget-texterator", ["chilipeppr_ready", /* other dependencies here */ ], function() {
     return {
         /**
          * The ID of the widget. You must define this and make it unique.
          */
-        id: "com-zipwhip-widget-beerbot", // Make the id the same as the cpdefine id
-        name: "textabeer", // The descriptive name of your widget.
+        id: "com-zipwhip-widget-texterator", // Make the id the same as the cpdefine id
+        name: "Widget / Texterator", // The descriptive name of your widget.
         desc: "A widget for controlling the Beer Bot.",
-        url: "http://raw.githubusercontent.com/chilipeppr/widget-beerbot/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
-        fiddleurl: "http://ide.c9.io/chilipeppr/widget-beerbot", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
-        githuburl: "http://github.com/chilipeppr/widget-beerbot", // The backing github repo
-        testurl: "http://widget-beerbot-chilipeppr.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
+        url: "http://raw.githubusercontent.com/chilipeppr/widget-texterator/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
+        fiddleurl: "http://ide.c9.io/chilipeppr/widget-texterator", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
+        githuburl: "http://github.com/chilipeppr/widget-texterator", // The backing github repo
+        testurl: "http://widget-texterator-chilipeppr.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
         /**
          * Define pubsub signals below. These are basically ChiliPeppr's event system.
          * ChiliPeppr uses amplify.js's pubsub system so please refer to docs at
@@ -230,7 +230,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             }
 
         },
-        drawBeerBot: function() {
+        drawtexterator: function() {
             // draw the major components of the beer bot
             var main = new THREE.Object3D();
             
@@ -438,7 +438,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             this.sceneReAddMySceneGroup();
             this.obj3dmeta.camera.far = 5000;
             this.obj3dmeta.camera.near = 10;
-            console.log("beerbot three obj:", this.obj3d, "objmeta:", this.obj3dmeta);
+            console.log("texterator three obj:", this.obj3d, "objmeta:", this.obj3dmeta);
             
             chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
             
@@ -594,7 +594,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
             //setTimeout(function () {
                 //that.open();
             //}, 1000);
-            this.drawBeerBot();
+            this.drawtexterator();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
         obj3dmeta: null, // gets metadata for 3dviewer
@@ -854,7 +854,7 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
 </head>
 
 <body>
-    <div id="com-zipwhip-widget-beerbot" class="panel panel-default">
+    <div id="com-zipwhip-widget-texterator" class="panel panel-default">
         <div class="panel-heading ">
 
             <div class="btn-toolbar pull-right" role="toolbar">
@@ -873,22 +873,22 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
                         <ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
                     </div>
                 </div>
-            </div> <span class="panel-title" data-toggle="popover">textabeer</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
+            </div> <span class="panel-title" data-toggle="popover">Texterator</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
 
         </div>
         <div class="panel-body">
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#com-zipwhip-widget-beerbot-tab1" role="tab" data-toggle="tab">Tab 1</a>
+                <li class="active"><a href="#com-zipwhip-widget-texterator-tab1" role="tab" data-toggle="tab">Tab 1</a>
                 </li>
-                <li><a href="#com-zipwhip-widget-beerbot-tab2" role="tab" data-toggle="tab">Tab 2</a></li>
-                <li><a href="#com-zipwhip-widget-beerbot-tab3" role="tab" data-toggle="tab">Tab 3</a></li>
+                <li><a href="#com-zipwhip-widget-texterator-tab2" role="tab" data-toggle="tab">Tab 2</a></li>
+                <li><a href="#com-zipwhip-widget-texterator-tab3" role="tab" data-toggle="tab">Tab 3</a></li>
             </ul>
             <!-- Tab panes -->
 
             <!-- Tab 1 -->
             <div class="tab-content">
-                <div class="tab-pane active" id="com-zipwhip-widget-beerbot-tab1">
+                <div class="tab-pane active" id="com-zipwhip-widget-texterator-tab1">
                     <p>This is the content of tab 1.</p>
                     <div class="">
                         <button type="button" class="btn btn-xs btn-default btn-helloworld2" style="margin: 4px 0;">Hello World 2</button>
@@ -896,12 +896,12 @@ cpdefine("inline:com-zipwhip-widget-beerbot", ["chilipeppr_ready", /* other depe
                 </div>
 
                 <!-- Tab 2 -->
-                <div class="tab-pane" id="com-zipwhip-widget-beerbot-tab2">
+                <div class="tab-pane" id="com-zipwhip-widget-texterator-tab2">
                     <p>This is the content of tab 2.</p>
                 </div>
 
                 <!-- Tab 3 -->
-                <div class="tab-pane" id="com-zipwhip-widget-beerbot-tab3">
+                <div class="tab-pane" id="com-zipwhip-widget-texterator-tab3">
                     <p>This is the content of tab 3.</p>
                 </div>
 

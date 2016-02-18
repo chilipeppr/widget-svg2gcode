@@ -8,3 +8,12 @@
     padding: 2px 6px;
 }
 
+#com-zipwhip-widget-texterator .tab-pane {
+    padding-top:10px;
+}
+
+.btn-laserit {
+    border-top-left-radius:0;
+    border-bottom-left-radius:0;
+    border:0;
+}

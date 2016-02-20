@@ -34,7 +34,7 @@ requirejs.config({
     }
 });
 
-cprequire_test(["inline:com-zipwhip-widget-texterator"], function(myWidget) {
+cprequire_test(["inline:com-zipwhip-widget-font2gcode"], function(myWidget) {
 
     // Test this element. This code is auto-removed by the chilipeppr.load()
     // when using this widget in production. So use the cpquire_test to do things
@@ -98,14 +98,14 @@ cprequire_test(["inline:com-zipwhip-widget-texterator"], function(myWidget) {
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
-cpdefine("inline:com-zipwhip-widget-texterator", ["chilipeppr_ready", /* other dependencies here */ ], function() {
+cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other dependencies here */ ], function() {
     return {
         /**
          * The ID of the widget. You must define this and make it unique.
          */
-        id: "com-zipwhip-widget-texterator", // Make the id the same as the cpdefine id
-        name: "Widget / Texterator", // The descriptive name of your widget.
-        desc: "A widget for controlling the Zipwhip Texterator.",
+        id: "com-zipwhip-widget-font2gcode", // Make the id the same as the cpdefine id
+        name: "Widget / Font2Gcode", // The descriptive name of your widget.
+        desc: "This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically.",
         url: "(auto fill by runme.js)",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
         fiddleurl: "(auto fill by runme.js)", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
         githuburl: "(auto fill by runme.js)", // The backing github repo
@@ -199,7 +199,230 @@ cpdefine("inline:com-zipwhip-widget-texterator", ["chilipeppr_ready", /* other d
             }
 
         },
-        drawtexterator: function() {
+        drawText: function() {
+            console.log("doing drawText");
+            
+            var txt = "313-414-7502";
+            this.createText(txt, {
+                size: 10,
+                height: 0
+            }, function(txt3d) {
+                console.log("text is created. txt3d:", txt3d);
+                
+            })
+        },
+        /**
+         * Create text in Three.js using the Helvetiker font.
+         * Params: createText(text, options)
+         *   text - The text you want to render
+         *   options - a set of options to tweak the rendering
+         *      {
+         *        fontName : helvetiker, optimer, gentilis, droid sans, droid serif
+                  size: Float. Size of the text.
+                  height: Float. Thickness to extrude text. Default is 50.
+                  curveSegments: Integer. Number of points on the curves. Default is 12.
+                  bevelThickness: Float. How deep into text bevel goes. Default is 10.
+                  bevelSize: Float. How far from text outline is bevel. Default is 8.
+                  bevelEnabled: Boolean. Turn on bevel. Default is False.
+                  material:
+                  extrudeMaterial:
+                }
+        **/
+        createText: function(text, options, callback) {
+            
+            // taken from http://threejs.org/examples/webgl_geometry_text.html
+            var fontMap = {
+
+				"helvetiker": 0,
+				"optimer": 1,
+				"gentilis": 2,
+				"droid/droid_sans": 3,
+				"droid/droid_serif": 4
+
+			};
+
+			var weightMap = {
+
+				"regular": 0,
+				"bold": 1
+
+			};
+            
+            // figure out defaults and overrides
+            var opts = {
+
+                font: null,
+                
+				size: options.size ? options.size : 20,
+				height: options.height ? options.height : 10,
+				curveSegments: options.curveSegments ? options.curveSegments : 4,
+
+				bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
+				bevelSize: options.bevelSize ? options.bevelSize : 1.5,
+				bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
+
+				material: 0,
+				extrudeMaterial: 1
+
+			}
+			console.log("opts:", opts);
+            
+            var fontOpts = {
+                fontName : options.fontName ? options.fontName : "helvetiker",
+                fontWeight : options.fontWeight ? options.fontWeight : "bold",
+            }
+            console.log("fontOpts:", fontOpts);
+            
+            this.loadFont(fontOpts, function(font) {
+                    
+                // we have our font loaded, now we can render
+                opts.font = font;
+                
+                var group = new THREE.Group();
+    			//group.position.y = 100;
+                
+    			var textGeo = new THREE.TextGeometry( text, opts );
+    
+    			textGeo.computeBoundingBox();
+    			textGeo.computeVertexNormals();
+    
+    			// "fix" side normals by removing z-component of normals for side faces
+    			// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
+    
+    			if ( ! bevelEnabled ) {
+    
+    				var triangleAreaHeuristics = 0.1 * ( height * size );
+    
+    				for ( var i = 0; i < textGeo.faces.length; i ++ ) {
+    
+    					var face = textGeo.faces[ i ];
+    
+    					if ( face.materialIndex == 1 ) {
+    
+    						for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
+    
+    							face.vertexNormals[ j ].z = 0;
+    							face.vertexNormals[ j ].normalize();
+    
+    						}
+    
+    						var va = textGeo.vertices[ face.a ];
+    						var vb = textGeo.vertices[ face.b ];
+    						var vc = textGeo.vertices[ face.c ];
+    
+    						var s = THREE.GeometryUtils.triangleArea( va, vb, vc );
+    
+    						if ( s > triangleAreaHeuristics ) {
+    
+    							for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
+    
+    								face.vertexNormals[ j ].copy( face.normal );
+    
+    							}
+    
+    						}
+    
+    					}
+    
+    				}
+    
+    			}
+    
+    			var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+    
+    			textMesh1 = new THREE.Mesh( textGeo, material );
+    
+    			textMesh1.position.x = centerOffset;
+    			textMesh1.position.y = hover;
+    			textMesh1.position.z = 0;
+    
+    			textMesh1.rotation.x = 0;
+    			textMesh1.rotation.y = Math.PI * 2;
+    
+    			group.add( textMesh1 );
+    
+    			if ( mirror ) {
+    
+    				textMesh2 = new THREE.Mesh( textGeo, material );
+    
+    				textMesh2.position.x = centerOffset;
+    				textMesh2.position.y = -hover;
+    				textMesh2.position.z = height;
+    
+    				textMesh2.rotation.x = Math.PI;
+    				textMesh2.rotation.y = Math.PI * 2;
+    
+    				group.add( textMesh2 );
+    
+    			}
+
+                    
+            });
+
+		},
+		loadFont: function(fontOpts, callback) {
+
+			var loader = new THREE.FontLoader();
+			// threejs.org/examples/fonts/helvetiker_bold.typeface.js
+			// https://i2dcui.appspot.com/js/three/fonts/
+			var url = 'https://i2dcui.appspot.com/js/three/fonts/' + 
+			    fontOpts.fontName + '_' + 
+			    fontOpts.fontWeight + '.typeface.js';
+			loader.load( url, function ( response ) {
+				var font = response;
+				console.log("loaded font:", font);
+				callback(font);
+				//refreshText();
+			});
+
+		},
+		
+        /**
+         * Pass in vals {
+         *   color: 0xff0000, // default 0x999999
+         *   text: "asdf",
+         *   height: 10, // default 1
+         *   size: 5, // default 10
+         *   x: 0,
+         *   y: 0,
+         *   z: 0,
+         * }
+         */
+        makeText: function(vals) {
+            var shapes, geom, mat, mesh;
+            
+            console.log("Do we have the global ThreeHelvetiker font:", ThreeHelvetiker);
+            console.log("THREE.FontUtils:", THREE.FontUtils);
+            
+            if (!THREE.FontUtils) {
+                console.error("THREE.FontUtils not defined per bug in r73 of three.js. So not making text.");
+                return;
+            }
+            
+            THREE.FontUtils.loadFace(ThreeHelvetiker);
+            shapes = THREE.FontUtils.generateShapes( vals.text, {
+                font: "helvetiker",
+                height: vals.height ? vals.height : 1,
+                //weight: "normal",
+                size: vals.size ? vals.size : 10
+            } );
+            geom = new THREE.ShapeGeometry( shapes );
+            mat = new THREE.MeshPhongMaterial({
+                color: vals.color ? vals.color : 0x999999,
+                side: THREE.DoubleSide,
+                // transparent: true,
+                // opacity: vals.opacity ? vals.opacity : 0.5,
+            });
+            mesh = new THREE.Mesh( geom, mat );
+            
+            mesh.position.x = vals.x;
+            mesh.position.y = vals.y;
+            mesh.position.z = vals.z;
+            
+            return mesh;
+            
+        },
+                drawtexterator: function() {
             // draw the major components of the beer bot
             var main = new THREE.Object3D();
             
@@ -412,148 +635,7 @@ cpdefine("inline:com-zipwhip-widget-texterator", ["chilipeppr_ready", /* other d
             chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
             
         },
-        createText: function(text, options) {
-            
-            // taken from http://threejs.org/examples/webgl_geometry_text.html
-            
-            /*
-			textGeo = new THREE.TextGeometry( text, {
 
-				font: options.font ? options.font : "",
-
-				size: size,
-				height: height,
-				curveSegments: curveSegments,
-
-				bevelThickness: bevelThickness,
-				bevelSize: bevelSize,
-				bevelEnabled: bevelEnabled,
-
-				material: 0,
-				extrudeMaterial: 1
-
-			});
-
-			textGeo.computeBoundingBox();
-			textGeo.computeVertexNormals();
-
-			// "fix" side normals by removing z-component of normals for side faces
-			// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
-
-			if ( ! bevelEnabled ) {
-
-				var triangleAreaHeuristics = 0.1 * ( height * size );
-
-				for ( var i = 0; i < textGeo.faces.length; i ++ ) {
-
-					var face = textGeo.faces[ i ];
-
-					if ( face.materialIndex == 1 ) {
-
-						for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
-
-							face.vertexNormals[ j ].z = 0;
-							face.vertexNormals[ j ].normalize();
-
-						}
-
-						var va = textGeo.vertices[ face.a ];
-						var vb = textGeo.vertices[ face.b ];
-						var vc = textGeo.vertices[ face.c ];
-
-						var s = THREE.GeometryUtils.triangleArea( va, vb, vc );
-
-						if ( s > triangleAreaHeuristics ) {
-
-							for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
-
-								face.vertexNormals[ j ].copy( face.normal );
-
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-
-			var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
-
-			textMesh1 = new THREE.Mesh( textGeo, material );
-
-			textMesh1.position.x = centerOffset;
-			textMesh1.position.y = hover;
-			textMesh1.position.z = 0;
-
-			textMesh1.rotation.x = 0;
-			textMesh1.rotation.y = Math.PI * 2;
-
-			group.add( textMesh1 );
-
-			if ( mirror ) {
-
-				textMesh2 = new THREE.Mesh( textGeo, material );
-
-				textMesh2.position.x = centerOffset;
-				textMesh2.position.y = -hover;
-				textMesh2.position.z = height;
-
-				textMesh2.rotation.x = Math.PI;
-				textMesh2.rotation.y = Math.PI * 2;
-
-				group.add( textMesh2 );
-
-			}
-			*/
-
-		},
-        /**
-         * Pass in vals {
-         *   color: 0xff0000, // default 0x999999
-         *   text: "asdf",
-         *   height: 10, // default 1
-         *   size: 5, // default 10
-         *   x: 0,
-         *   y: 0,
-         *   z: 0,
-         * }
-         */
-        makeText: function(vals) {
-            var shapes, geom, mat, mesh;
-            
-            console.log("Do we have the global ThreeHelvetiker font:", ThreeHelvetiker);
-            console.log("THREE.FontUtils:", THREE.FontUtils);
-            
-            if (!THREE.FontUtils) {
-                console.error("THREE.FontUtils not defined per bug in r73 of three.js. So not making text.");
-                return;
-            }
-            
-            THREE.FontUtils.loadFace(ThreeHelvetiker);
-            shapes = THREE.FontUtils.generateShapes( vals.text, {
-                font: "helvetiker",
-                height: vals.height ? vals.height : 1,
-                //weight: "normal",
-                size: vals.size ? vals.size : 10
-            } );
-            geom = new THREE.ShapeGeometry( shapes );
-            mat = new THREE.MeshPhongMaterial({
-                color: vals.color ? vals.color : 0x999999,
-                side: THREE.DoubleSide,
-                // transparent: true,
-                // opacity: vals.opacity ? vals.opacity : 0.5,
-            });
-            mesh = new THREE.Mesh( geom, mat );
-            
-            mesh.position.x = vals.x;
-            mesh.position.y = vals.y;
-            mesh.position.z = vals.z;
-            
-            return mesh;
-            
-        },
         onInit3dSuccess: function () {
             console.log("onInit3dSuccess. That means we finally got an object back.");
             this.clear3dViewer();
@@ -563,7 +645,8 @@ cpdefine("inline:com-zipwhip-widget-texterator", ["chilipeppr_ready", /* other d
             //setTimeout(function () {
                 //that.open();
             //}, 1000);
-            this.drawtexterator();
+            //this.drawtexterator();
+            this.drawText();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
         obj3dmeta: null, // gets metadata for 3dviewer

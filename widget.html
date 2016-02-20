@@ -32,7 +32,7 @@
 </head>
 
 <body>
-    <div id="com-zipwhip-widget-texterator" class="panel panel-default">
+    <div id="com-zipwhip-widget-font2gcode" class="panel panel-default">
         <div class="panel-heading ">
 
             <div class="btn-toolbar pull-right" role="toolbar">
@@ -51,67 +51,25 @@
                         <ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
                     </div>
                 </div>
-            </div> <span class="panel-title" data-toggle="popover">Texterator</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
+            </div> <span class="panel-title" data-toggle="popover">Font2Gcode</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
 
         </div>
         <div class="panel-body">
-            <!-- Nav tabs -->
-            <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#com-zipwhip-widget-texterator-tab1" role="tab" data-toggle="tab">Lazy Susan</a>
-                </li>
-                <li><a href="#com-zipwhip-widget-texterator-tab2" role="tab" data-toggle="tab">Tap</a></li>
-                <li><a href="#com-zipwhip-widget-texterator-tab3" role="tab" data-toggle="tab">Dispenser</a></li>
-                <li><a href="#com-zipwhip-widget-texterator-tab4" role="tab" data-toggle="tab">Laser</a></li>
-            </ul>
-            <!-- Tab panes -->
-
-            <!-- Tab 1 -->
-            <div class="tab-content">
-                <div class="tab-pane active" id="com-zipwhip-widget-texterator-tab1">
-                    <!--<p>This is the content of tab 1.</p>-->
-                    <div class="">
-                        <button type="button" class="btn xbtn-xs btn-default btn-helloworld2"><span class="glyphicon glyphicon-arrow-left"></span></button>
-                        <button type="button" class="btn xbtn-xs btn-default btn-helloworld2"><span class="glyphicon glyphicon-arrow-right"></span></button>
-                    </div>
-                </div>
-
-                <!-- Tab 2 -->
-                <div class="tab-pane" id="com-zipwhip-widget-texterator-tab2">
-                    <!--<p>This is the content of tab 2.</p>-->
-                    <div class="btn-group">
-                        <button type="button" style="font-size:11px;" class="btn xbtn-xs btn-default btn-helloworld2">Run Sequence</button>
-                        <button type="button" style="font-size:11px;" class="btn xbtn-xs btn-default btn-helloworld2">Open Valve</button>
-                        <button type="button" style="font-size:11px;" class="btn xbtn-xs btn-default btn-helloworld2">Close Valve</button>
-                    </div>                    
-                </div>
-
-                <!-- Tab 3 -->
-                <div class="tab-pane" id="com-zipwhip-widget-texterator-tab3">
-                    <!--<p>This is the content of tab 3.</p>-->
-                    <button type="button" class="btn xbtn-xs btn-default btn-helloworld2">Dispense Cup</button>
-
-                </div>
-
-                <!-- Tab 4 -->
-                <div class="tab-pane" id="com-zipwhip-widget-texterator-tab4">
-                    <!--<p>This is the content of tab 3.</p>-->
-                    <form class="form-inline">
-                        <div class="form-group">
-                            <div class="input-group">
-                                <input type="text" class="form-control" xstyle="margin-bottom:5px;" placeholder="Enter text to laser" />
-                                <div class="input-group-addon" style="padding:0;">
-                                    <button type="button" xstyle="border-radius:0; border:0;" class="btn btn-default btn-laserit">Laser It</button>
-                                </div>
-                            </div>
+        
+            <form class="form-inline">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" class="form-control" xstyle="margin-bottom:5px;" placeholder="Enter text to render" />
+                        <div class="input-group-addon" style="padding:0;">
+                            <button type="button" xstyle="border-radius:0; border:0;" class="btn btn-default btn-laserit">Render</button>
                         </div>
-                    </form>
-                    <div class="btn-group" role="group" aria-label="">
-                        <button type="button" class="btn xbtn-xs btn-default btn-helloworld2"><span class="glyphicon glyphicon-arrow-left"></span> <span style="font-size:11px;">Rotate Cup Left</span></button>
-                        <button type="button" class="btn xbtn-xs btn-default btn-helloworld2"><span class="glyphicon glyphicon-arrow-right"></span> <span style="font-size:11px;">Rotate Cup Right</span></button>
                     </div>
                 </div>
-
-            </div>
+            </form>
+            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
+        
+            <p style="margin-top:10px;">Gcode</p>
+            <textarea class="form-control" rows="3"></textarea>
 
         </div>
     </div>

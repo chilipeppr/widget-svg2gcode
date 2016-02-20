@@ -1,9 +1,9 @@
-# com-zipwhip-widget-texterator
-A widget for controlling the Zipwhip Texterator.
+# com-zipwhip-widget-font2gcode
+This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically.
 
 ![alt text](screenshot.png "Screenshot")
 
-## ChiliPeppr Widget / Texterator
+## ChiliPeppr Widget / Font2Gcode
 
 All ChiliPeppr widgets/elements are defined using cpdefine() which is a method
 that mimics require.js. Each defined object must have a unique ID so it does
@@ -11,13 +11,13 @@ not conflict with other ChiliPeppr widgets.
 
 | Item                  | Value           |
 | -------------         | ------------- | 
-| ID                    | com-zipwhip-widget-texterator |
-| Name                  | Widget / Texterator |
-| Description           | A widget for controlling the Zipwhip Texterator. |
-| chilipeppr.load() URL | http://raw.githubusercontent.com/chilipeppr/widget-texterator/master/auto-generated-widget.html |
-| Edit URL              | http://ide.c9.io/chilipeppr/widget-texterator |
-| Github URL            | http://github.com/chilipeppr/widget-texterator |
-| Test URL              | https://preview.c9users.io/chilipeppr/widget-texterator/widget.html |
+| ID                    | com-zipwhip-widget-font2gcode |
+| Name                  | Widget / Font2Gcode |
+| Description           | This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically. |
+| chilipeppr.load() URL | http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html |
+| Edit URL              | http://ide.c9.io/chilipeppr/widget-font2gcode |
+| Github URL            | http://github.com/chilipeppr/widget-font2gcode |
+| Test URL              | https://preview.c9users.io/chilipeppr/widget-font2gcode/widget.html |
 
 ## Example Code for chilipeppr.load() Statement
 
@@ -29,20 +29,20 @@ back the instance of it.
 
 ```javascript
 // Inject new div to contain widget or use an existing div with an ID
-$("body").append('<' + 'div id="myDivComZipwhipWidgetTexterator"><' + '/div>');
+$("body").append('<' + 'div id="myDivComZipwhipWidgetFont2gcode"><' + '/div>');
 
 chilipeppr.load(
-  "#myDivComZipwhipWidgetTexterator",
-  "http://raw.githubusercontent.com/chilipeppr/widget-texterator/master/auto-generated-widget.html",
+  "#myDivComZipwhipWidgetFont2gcode",
+  "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
   function() {
-    // Callback after widget loaded into #myDivComZipwhipWidgetTexterator
+    // Callback after widget loaded into #myDivComZipwhipWidgetFont2gcode
     // Now use require.js to get reference to instantiated widget
     cprequire(
-      ["inline:com-zipwhip-widget-texterator"], // the id you gave your widget
-      function(myObjComZipwhipWidgetTexterator) {
+      ["inline:com-zipwhip-widget-font2gcode"], // the id you gave your widget
+      function(myObjComZipwhipWidgetFont2gcode) {
         // Callback that is passed reference to the newly loaded widget
-        console.log("Widget / Texterator just got loaded.", myObjComZipwhipWidgetTexterator);
-        myObjComZipwhipWidgetTexterator.init();
+        console.log("Widget / Font2Gcode just got loaded.", myObjComZipwhipWidgetFont2gcode);
+        myObjComZipwhipWidgetFont2gcode.init();
       }
     );
   }
@@ -98,7 +98,7 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>/com-zipwhip-widget-texterator/com-chilipeppr-widget-3dviewer/request3dObject</td><td>This gives us back the 3d object from the 3d viewer so we can add Three.js objects to it.</td></tr>    
+      <tr valign="top"><td>/com-zipwhip-widget-font2gcode/com-chilipeppr-widget-3dviewer/request3dObject</td><td>This gives us back the 3d object from the 3d viewer so we can add Three.js objects to it.</td></tr>    
       </tbody>
   </table>
 
@@ -115,7 +115,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>/com-zipwhip-widget-texterator/com-chilipeppr-widget-3dviewer/recv3dObject</td><td>By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects.</td></tr>    
+      <tr valign="top"><td>/com-zipwhip-widget-font2gcode/com-chilipeppr-widget-3dviewer/recv3dObject</td><td>By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects.</td></tr>    
       </tbody>
   </table>
 
@@ -132,12 +132,26 @@ The table below shows, in order, the methods and properties inside the widget/el
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>id</td><td>string</td><td>"com-zipwhip-widget-texterator"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / Texterator"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"A widget for controlling the Zipwhip Texterator."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"http://raw.githubusercontent.com/chilipeppr/widget-texterator/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"http://ide.c9.io/chilipeppr/widget-texterator"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"http://github.com/chilipeppr/widget-texterator"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"http://widget-texterator-chilipeppr.c9users.io/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
+      <tr valign="top"><td>id</td><td>string</td><td>"com-zipwhip-widget-font2gcode"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / Font2Gcode"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"http://ide.c9.io/chilipeppr/widget-font2gcode"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"http://github.com/chilipeppr/widget-font2gcode"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"http://widget-font2gcode-chilipeppr.c9users.io/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>subscribe</td><td>object</td><td>Please see docs above.<br><br>Define the subscribe signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.<br><br>Document the foreign publish signals, i.e. signals owned by other widgets
 or elements, that this widget/element publishes to.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.<br><br>Document the foreign subscribe signals, i.e. signals owned by other widgets
 or elements, that this widget/element subscribes to.</td></tr><tr valign="top"><td>init</td><td>function</td><td>function () <br><br>All widgets should have an init method. It should be run by the
-instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>drawtexterator</td><td>function</td><td>function () </td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
+instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>drawText</td><td>function</td><td>function () </td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options, callback) <br><br>Create text in Three.js using the Helvetiker font.
+Params: createText(text, options)
+text - The text you want to render
+options - a set of options to tweak the rendering
+{
+fontName : helvetiker, optimer, gentilis, droid sans, droid serif
+size: Float. Size of the text.
+height: Float. Thickness to extrude text. Default is 50.
+curveSegments: Integer. Number of points on the curves. Default is 12.
+bevelThickness: Float. How deep into text bevel goes. Default is 10.
+bevelSize: Float. How far from text outline is bevel. Default is 8.
+bevelEnabled: Boolean. Turn on bevel. Default is False.
+material:
+extrudeMaterial:
+}</td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
 color: 0xff0000, // default 0x999999
 text: "asdf",
 height: 10, // default 1
@@ -145,7 +159,7 @@ size: 5, // default 10
 x: 0,
 y: 0,
 z: 0,
-}</td></tr><tr valign="top"><td>onInit3dSuccess</td><td>function</td><td>function () </td></tr><tr valign="top"><td>obj3d</td><td>object</td><td></td></tr><tr valign="top"><td>obj3dmeta</td><td>object</td><td></td></tr><tr valign="top"><td>userCallbackForGet3dObj</td><td>object</td><td></td></tr><tr valign="top"><td>get3dObj</td><td>function</td><td>function (callback) </td></tr><tr valign="top"><td>get3dObjCallback</td><td>function</td><td>function (data, meta) </td></tr><tr valign="top"><td>is3dViewerReady</td><td>boolean</td><td></td></tr><tr valign="top"><td>clear3dViewer</td><td>function</td><td>function () </td></tr><tr valign="top"><td>mySceneGroup</td><td>object</td><td></td></tr><tr valign="top"><td>sceneReAddMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>sceneRemoveMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () <br><br>Call this method from init to setup all the buttons when this widget
+}</td></tr><tr valign="top"><td>drawtexterator</td><td>function</td><td>function () </td></tr><tr valign="top"><td>onInit3dSuccess</td><td>function</td><td>function () </td></tr><tr valign="top"><td>obj3d</td><td>object</td><td></td></tr><tr valign="top"><td>obj3dmeta</td><td>object</td><td></td></tr><tr valign="top"><td>userCallbackForGet3dObj</td><td>object</td><td></td></tr><tr valign="top"><td>get3dObj</td><td>function</td><td>function (callback) </td></tr><tr valign="top"><td>get3dObjCallback</td><td>function</td><td>function (data, meta) </td></tr><tr valign="top"><td>is3dViewerReady</td><td>boolean</td><td></td></tr><tr valign="top"><td>clear3dViewer</td><td>function</td><td>function () </td></tr><tr valign="top"><td>mySceneGroup</td><td>object</td><td></td></tr><tr valign="top"><td>sceneReAddMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>sceneRemoveMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () <br><br>Call this method from init to setup all the buttons when this widget
 is first loaded. This basically attaches click events to your 
 buttons. It also turns on all the bootstrap popovers by scanning
 the entire DOM of the widget.</td></tr><tr valign="top"><td>onHelloBtnClick</td><td>function</td><td>function (evt) <br><br>onHelloBtnClick is an example of a button click event callback</td></tr><tr valign="top"><td>options</td><td>object</td><td>User options are available in this property for reference by your

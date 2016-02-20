@@ -224,6 +224,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                   bevelThickness: Float. How deep into text bevel goes. Default is 10.
                   bevelSize: Float. How far from text outline is bevel. Default is 8.
                   bevelEnabled: Boolean. Turn on bevel. Default is False.
+                  mirror: Boolean. Flip over font. Default is False.
                   material:
                   extrudeMaterial:
                 }
@@ -261,8 +262,10 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
 				bevelSize: options.bevelSize ? options.bevelSize : 1.5,
 				bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
 
-				material: 0,
-				extrudeMaterial: 1
+                mirror: options.mirror ? options.mirror : false,
+                
+				//material: 0,
+				//extrudeMaterial: 1
 
 			}
 			console.log("opts:", opts);
@@ -289,9 +292,9 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
     			// "fix" side normals by removing z-component of normals for side faces
     			// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
     
-    			if ( ! bevelEnabled ) {
+    			if ( ! opts.bevelEnabled ) {
     
-    				var triangleAreaHeuristics = 0.1 * ( height * size );
+    				var triangleAreaHeuristics = 0.1 * ( opts.height * opts.size );
     
     				for ( var i = 0; i < textGeo.faces.length; i ++ ) {
     
@@ -315,23 +318,23 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
     						if ( s > triangleAreaHeuristics ) {
     
     							for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
-    
     								face.vertexNormals[ j ].copy( face.normal );
-    
     							}
-    
     						}
-    
     					}
-    
     				}
-    
     			}
     
     			var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
     
-    			textMesh1 = new THREE.Mesh( textGeo, material );
-    
+                var material = new THREE.LineBasicMaterial({
+                	color: 0x0000ff
+                });
+    			var textMesh1 = new THREE.Mesh( textGeo, material );
+                
+                // y position of text
+                var hover = 0;
+                
     			textMesh1.position.x = centerOffset;
     			textMesh1.position.y = hover;
     			textMesh1.position.z = 0;
@@ -341,13 +344,13 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
     
     			group.add( textMesh1 );
     
-    			if ( mirror ) {
+    			if ( opts.mirror ) {
     
-    				textMesh2 = new THREE.Mesh( textGeo, material );
+    				var textMesh2 = new THREE.Mesh( textGeo, material );
     
     				textMesh2.position.x = centerOffset;
     				textMesh2.position.y = -hover;
-    				textMesh2.position.z = height;
+    				textMesh2.position.z = opts.height;
     
     				textMesh2.rotation.x = Math.PI;
     				textMesh2.rotation.y = Math.PI * 2;
@@ -355,6 +358,9 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
     				group.add( textMesh2 );
     
     			}
+    			
+    			// call the user's callback with our final three.js object
+    			callback(group);
 
                     
             });

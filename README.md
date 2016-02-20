@@ -149,6 +149,7 @@ curveSegments: Integer. Number of points on the curves. Default is 12.
 bevelThickness: Float. How deep into text bevel goes. Default is 10.
 bevelSize: Float. How far from text outline is bevel. Default is 8.
 bevelEnabled: Boolean. Turn on bevel. Default is False.
+mirror: Boolean. Flip over font. Default is False.
 material:
 extrudeMaterial:
 }</td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {

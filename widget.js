@@ -204,11 +204,11 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             
             var that = this;
             
-            var txt = "313-555-7502";
+            var txt = "313-554-7502";
             this.createText(txt, {
-                size: 1,
+                size: 10,
                 fontWeight: "bold",
-                holes: false, // don't generate hole paths cuz they'll get cut pointlessly
+                holes: true, // don't generate hole paths cuz they'll get cut pointlessly
                 textalign: "center", // center point
                 
             }, function(txt3d) {
@@ -218,7 +218,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             })
         },
         /**
-         * Create text in Three.js using the Helvetiker font.<br>
+         * Create text in Three.js.<br>
          * Params: createText(text, options)<br>
          *   text - The text you want to render<br>
          *   options - a set of options to tweak the rendering<br><pre>
@@ -302,8 +302,8 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             
             	var shapes = font.generateShapes( text, opts.size, opts.curveSegments );
                 console.log("shapes:", shapes);
-                var textGeo = new THREE.ShapeGeometry( shapes );
-                console.log("textGeo:", textGeo);
+                //var textGeo = new THREE.ShapeGeometry( shapes );
+                //console.log("textGeo:", textGeo);
                 
                 var material = new THREE.LineBasicMaterial({
                 	color: 0x0000ff
@@ -322,6 +322,10 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
     				
     				// solid line
     				var line = new THREE.Line( points, material );
+    				line.userData["character"] = text[i];
+    				line.userData["characterIndex"] = i;
+    				line.userData["fromText"] = text;
+    				console.log("line:", line);
     				
     				textGroup.add( line );
     				
@@ -334,6 +338,10 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             				
             				// solid line
             				var line = new THREE.Line( points, material );
+            				line.userData["character"] = text[i];
+            				line.userData["characterIndex"] = i;
+            				line.userData["isHole"] = true;
+            				line.userData["fromText"] = text;
             				
             				textGroup.add( line );
         				    console.log("got hole. generating line.")

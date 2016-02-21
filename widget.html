@@ -66,8 +66,22 @@
                     </div>
                 </div>
             </form>
-            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
         
+            <div class="input-group">
+              <div class="input-group-addon">Height</div>
+              <input type="text" class="form-control" value="10" placeholder="Height">
+              <div class="input-group-addon">mm</div>
+            </div>
+            
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="1" checked>
+                Generate holes, i.e. like center of a 0
+              </label>
+            </div>
+                
+            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
+
             <p style="margin-top:10px;">Gcode</p>
             <textarea class="form-control" rows="3"></textarea>
 

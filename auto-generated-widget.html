@@ -241,13 +241,19 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
         drawText: function() {
             console.log("doing drawText");
             
-            var txt = "313-414-7502";
+            var that = this;
+            
+            var txt = "313-555-7502";
             this.createText(txt, {
-                size: 10,
-                height: 0
+                size: 1,
+                fontWeight: "bold",
+                holes: false, // don't generate hole paths cuz they'll get cut pointlessly
+                textalign: "center", // center point
+                
             }, function(txt3d) {
                 console.log("text is created. txt3d:", txt3d);
-                
+                that.mySceneGroup = txt3d;
+                that.sceneReAddMySceneGroup();
             })
         },
         /**
@@ -256,16 +262,12 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
          *   text - The text you want to render
          *   options - a set of options to tweak the rendering
          *      {
-         *        fontName : helvetiker, optimer, gentilis, droid sans, droid serif
+         *        fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
+         *        fontWeight: String. regular, bold
                   size: Float. Size of the text.
-                  height: Float. Thickness to extrude text. Default is 50.
+                  align: String. "left", "center"
+                  holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
                   curveSegments: Integer. Number of points on the curves. Default is 12.
-                  bevelThickness: Float. How deep into text bevel goes. Default is 10.
-                  bevelSize: Float. How far from text outline is bevel. Default is 8.
-                  bevelEnabled: Boolean. Turn on bevel. Default is False.
-                  mirror: Boolean. Flip over font. Default is False.
-                  material:
-                  extrudeMaterial:
                 }
         **/
         createText: function(text, options, callback) {
@@ -297,11 +299,13 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
 				height: options.height ? options.height : 10,
 				curveSegments: options.curveSegments ? options.curveSegments : 4,
 
-				bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
-				bevelSize: options.bevelSize ? options.bevelSize : 1.5,
-				bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
+                holes: options.holes ? true : false,
+                align: options.align ? options.align : "left",
+				// bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
+				// bevelSize: options.bevelSize ? options.bevelSize : 1.5,
+				// bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
 
-                mirror: options.mirror ? options.mirror : false,
+                // mirror: options.mirror ? options.mirror : false,
                 
 				//material: 0,
 				//extrudeMaterial: 1
@@ -311,7 +315,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             
             var fontOpts = {
                 fontName : options.fontName ? options.fontName : "helvetiker",
-                fontWeight : options.fontWeight ? options.fontWeight : "bold",
+                fontWeight : options.fontWeight ? options.fontWeight : "regular",
             }
             console.log("fontOpts:", fontOpts);
             
@@ -323,81 +327,77 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                 var group = new THREE.Group();
     			//group.position.y = 100;
                 
-    			var textGeo = new THREE.TextGeometry( text, opts );
-    
-    			textGeo.computeBoundingBox();
-    			textGeo.computeVertexNormals();
-    
-    			// "fix" side normals by removing z-component of normals for side faces
-    			// (this doesn't work well for beveled geometry as then we lose nice curvature around z-axis)
-    
-    			if ( ! opts.bevelEnabled ) {
-    
-    				var triangleAreaHeuristics = 0.1 * ( opts.height * opts.size );
-    
-    				for ( var i = 0; i < textGeo.faces.length; i ++ ) {
-    
-    					var face = textGeo.faces[ i ];
-    
-    					if ( face.materialIndex == 1 ) {
-    
-    						for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
-    
-    							face.vertexNormals[ j ].z = 0;
-    							face.vertexNormals[ j ].normalize();
-    
-    						}
-    
-    						var va = textGeo.vertices[ face.a ];
-    						var vb = textGeo.vertices[ face.b ];
-    						var vc = textGeo.vertices[ face.c ];
-    
-    						var s = THREE.GeometryUtils.triangleArea( va, vb, vc );
-    
-    						if ( s > triangleAreaHeuristics ) {
-    
-    							for ( var j = 0; j < face.vertexNormals.length; j ++ ) {
-    								face.vertexNormals[ j ].copy( face.normal );
-    							}
-    						}
-    					}
-    				}
-    			}
-    
-    			var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
-    
+                console.log("final opts to render text with:", opts);
+    			//var textGeo = new THREE.TextGeometry( text, opts );
+    			
+    			//var font = opts.font;
+
+            	if ( font instanceof THREE.Font === false ) {
+            
+            		console.error( 'THREE.TextGeometry: font parameter is not an instance of THREE.Font.' );
+            		//return new THREE.Geometry();
+                    return;
+            	}
+            
+            	var shapes = font.generateShapes( text, opts.size, opts.curveSegments );
+                console.log("shapes:", shapes);
+                var textGeo = new THREE.ShapeGeometry( shapes );
+                console.log("textGeo:", textGeo);
+                
                 var material = new THREE.LineBasicMaterial({
                 	color: 0x0000ff
                 });
-    			var textMesh1 = new THREE.Mesh( textGeo, material );
+
+                var textGroup = new THREE.Group();
                 
+                // loop thru each shape and generate a line object
+                for (var i in shapes) {
+                    
+                    var shape = shapes[i];
+                    
+                    // lines
+    				shape.autoClose = true;
+    				var points = shape.createPointsGeometry();
+    				
+    				// solid line
+    				var line = new THREE.Line( points, material );
+    				
+    				textGroup.add( line );
+    				
+    				// see if there are holes
+    				if (opts.holes) {
+        				for (var i2 in shape.holes) {
+        				    var shape = shape.holes[i2];
+        				    shape.autoClose = true;
+            				var points = shape.createPointsGeometry();
+            				
+            				// solid line
+            				var line = new THREE.Line( points, material );
+            				
+            				textGroup.add( line );
+        				    console.log("got hole. generating line.")
+        				}
+    				}
+                    
+                }
+				console.log("textGroup:", textGroup);
+				
+				var bbox = new THREE.Box3().setFromObject(textGroup);
+				
+    			var centerOffset = -0.5 * ( bbox.max.x - bbox.min.x );
+    
                 // y position of text
                 var hover = 0;
                 
-    			textMesh1.position.x = centerOffset;
-    			textMesh1.position.y = hover;
-    			textMesh1.position.z = 0;
+    			textGroup.position.x = centerOffset;
+    			textGroup.position.y = hover;
+    			textGroup.position.z = 0;
     
-    			textMesh1.rotation.x = 0;
-    			textMesh1.rotation.y = Math.PI * 2;
+    			textGroup.rotation.x = 0;
+    			textGroup.rotation.y = Math.PI * 2;
+                
+    			group.add( textGroup );
     
-    			group.add( textMesh1 );
-    
-    			if ( opts.mirror ) {
-    
-    				var textMesh2 = new THREE.Mesh( textGeo, material );
-    
-    				textMesh2.position.x = centerOffset;
-    				textMesh2.position.y = -hover;
-    				textMesh2.position.z = opts.height;
-    
-    				textMesh2.rotation.x = Math.PI;
-    				textMesh2.rotation.y = Math.PI * 2;
-    
-    				group.add( textMesh2 );
-    
-    			}
-    			
     			// call the user's callback with our final three.js object
     			callback(group);
 
@@ -407,6 +407,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
 		},
 		loadFont: function(fontOpts, callback) {
 
+            console.log("THREE:", THREE);
 			var loader = new THREE.FontLoader();
 			// threejs.org/examples/fonts/helvetiker_bold.typeface.js
 			// https://i2dcui.appspot.com/js/three/fonts/
@@ -467,7 +468,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             return mesh;
             
         },
-                drawtexterator: function() {
+        drawtexterator: function() {
             // draw the major components of the beer bot
             var main = new THREE.Object3D();
             
@@ -985,8 +986,22 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                     </div>
                 </div>
             </form>
-            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
         
+            <div class="input-group">
+              <div class="input-group-addon">Height</div>
+              <input type="text" class="form-control" value="10" placeholder="Height">
+              <div class="input-group-addon">mm</div>
+            </div>
+            
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="1" checked>
+                Generate holes, i.e. like center of a 0
+              </label>
+            </div>
+                
+            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
+
             <p style="margin-top:10px;">Gcode</p>
             <textarea class="form-control" rows="3"></textarea>
 

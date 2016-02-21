@@ -142,16 +142,12 @@ Params: createText(text, options)
 text - The text you want to render
 options - a set of options to tweak the rendering
 {
-fontName : helvetiker, optimer, gentilis, droid sans, droid serif
+fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
+fontWeight: String. regular, bold
 size: Float. Size of the text.
-height: Float. Thickness to extrude text. Default is 50.
+align: String. "left", "center"
+holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
 curveSegments: Integer. Number of points on the curves. Default is 12.
-bevelThickness: Float. How deep into text bevel goes. Default is 10.
-bevelSize: Float. How far from text outline is bevel. Default is 8.
-bevelEnabled: Boolean. Turn on bevel. Default is False.
-mirror: Boolean. Flip over font. Default is False.
-material:
-extrudeMaterial:
 }</td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
 color: 0xff0000, // default 0x999999
 text: "asdf",

@@ -137,10 +137,10 @@ other widgets know how to subscribe to them and what they do.</td></tr><tr valig
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.<br><br>Document the foreign publish signals, i.e. signals owned by other widgets
 or elements, that this widget/element publishes to.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.<br><br>Document the foreign subscribe signals, i.e. signals owned by other widgets
 or elements, that this widget/element subscribes to.</td></tr><tr valign="top"><td>init</td><td>function</td><td>function () <br><br>All widgets should have an init method. It should be run by the
-instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>drawText</td><td>function</td><td>function () </td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options, callback) <br><br>Create text in Three.js using the Helvetiker font.
-Params: createText(text, options)
-text - The text you want to render
-options - a set of options to tweak the rendering
+instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>drawText</td><td>function</td><td>function () </td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options, callback) <br><br>Create text in Three.js using the Helvetiker font.<br>
+Params: createText(text, options)<br>
+text - The text you want to render<br>
+options - a set of options to tweak the rendering<br><pre>
 {
 fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
 fontWeight: String. regular, bold
@@ -148,7 +148,7 @@ size: Float. Size of the text.
 align: String. "left", "center"
 holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
 curveSegments: Integer. Number of points on the curves. Default is 12.
-}</td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
+}</pre></td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
 color: 0xff0000, // default 0x999999
 text: "asdf",
 height: 10, // default 1

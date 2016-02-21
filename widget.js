@@ -218,10 +218,10 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             })
         },
         /**
-         * Create text in Three.js using the Helvetiker font.
-         * Params: createText(text, options)
-         *   text - The text you want to render
-         *   options - a set of options to tweak the rendering
+         * Create text in Three.js using the Helvetiker font.<br>
+         * Params: createText(text, options)<br>
+         *   text - The text you want to render<br>
+         *   options - a set of options to tweak the rendering<br><pre>
          *      {
          *        fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
          *        fontWeight: String. regular, bold
@@ -229,7 +229,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                   align: String. "left", "center"
                   holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
                   curveSegments: Integer. Number of points on the curves. Default is 12.
-                }
+                }</pre>
         **/
         createText: function(text, options, callback) {
             

@@ -1,9 +1,9 @@
-# com-zipwhip-widget-font2gcode
+# com-zipwhip-widget-svg2gcode
 This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically.
 
 ![alt text](screenshot.png "Screenshot")
 
-## ChiliPeppr Widget / Font2Gcode
+## ChiliPeppr Widget / svg2gcode
 
 All ChiliPeppr widgets/elements are defined using cpdefine() which is a method
 that mimics require.js. Each defined object must have a unique ID so it does
@@ -11,13 +11,13 @@ not conflict with other ChiliPeppr widgets.
 
 | Item                  | Value           |
 | -------------         | ------------- | 
-| ID                    | com-zipwhip-widget-font2gcode |
-| Name                  | Widget / Font2Gcode |
+| ID                    | com-zipwhip-widget-svg2gcode |
+| Name                  | Widget / svg2gcode |
 | Description           | This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically. |
-| chilipeppr.load() URL | http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html |
-| Edit URL              | http://ide.c9.io/chilipeppr/widget-font2gcode |
-| Github URL            | http://github.com/chilipeppr/widget-font2gcode |
-| Test URL              | https://preview.c9users.io/chilipeppr/widget-font2gcode/widget.html |
+| chilipeppr.load() URL | http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html |
+| Edit URL              | http://ide.c9.io/chilipeppr/widget-svg2gcode |
+| Github URL            | http://github.com/chilipeppr/widget-svg2gcode |
+| Test URL              | https://preview.c9users.io/chilipeppr/widget-svg2gcode/widget.html |
 
 ## Example Code for chilipeppr.load() Statement
 
@@ -29,20 +29,20 @@ back the instance of it.
 
 ```javascript
 // Inject new div to contain widget or use an existing div with an ID
-$("body").append('<' + 'div id="myDivComZipwhipWidgetFont2gcode"><' + '/div>');
+$("body").append('<' + 'div id="myDivComZipwhipWidgetSvg2gcode"><' + '/div>');
 
 chilipeppr.load(
-  "#myDivComZipwhipWidgetFont2gcode",
-  "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
+  "#myDivComZipwhipWidgetSvg2gcode",
+  "http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html",
   function() {
-    // Callback after widget loaded into #myDivComZipwhipWidgetFont2gcode
+    // Callback after widget loaded into #myDivComZipwhipWidgetSvg2gcode
     // Now use require.js to get reference to instantiated widget
     cprequire(
-      ["inline:com-zipwhip-widget-font2gcode"], // the id you gave your widget
-      function(myObjComZipwhipWidgetFont2gcode) {
+      ["inline:com-zipwhip-widget-svg2gcode"], // the id you gave your widget
+      function(myObjComZipwhipWidgetSvg2gcode) {
         // Callback that is passed reference to the newly loaded widget
-        console.log("Widget / Font2Gcode just got loaded.", myObjComZipwhipWidgetFont2gcode);
-        myObjComZipwhipWidgetFont2gcode.init();
+        console.log("Widget / svg2gcode just got loaded.", myObjComZipwhipWidgetSvg2gcode);
+        myObjComZipwhipWidgetSvg2gcode.init();
       }
     );
   }
@@ -98,7 +98,7 @@ To better understand how ChiliPeppr's subscribe() method works see amplify.js's 
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>/com-zipwhip-widget-font2gcode/com-chilipeppr-widget-3dviewer/request3dObject</td><td>This gives us back the 3d object from the 3d viewer so we can add Three.js objects to it.</td></tr>    
+      <tr valign="top"><td>/com-zipwhip-widget-svg2gcode/com-chilipeppr-widget-3dviewer/request3dObject</td><td>This gives us back the 3d object from the 3d viewer so we can add Three.js objects to it.</td></tr>    
       </tbody>
   </table>
 
@@ -115,7 +115,7 @@ To better understand how ChiliPeppr's publish() method works see amplify.js's do
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>/com-zipwhip-widget-font2gcode/com-chilipeppr-widget-3dviewer/recv3dObject</td><td>By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects.</td></tr>    
+      <tr valign="top"><td>/com-zipwhip-widget-svg2gcode/com-chilipeppr-widget-3dviewer/recv3dObject</td><td>By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects.</td></tr>    
       </tbody>
   </table>
 
@@ -132,12 +132,17 @@ The table below shows, in order, the methods and properties inside the widget/el
           </tr>
       </thead>
       <tbody>
-      <tr valign="top"><td>id</td><td>string</td><td>"com-zipwhip-widget-font2gcode"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / Font2Gcode"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"http://ide.c9.io/chilipeppr/widget-font2gcode"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"http://github.com/chilipeppr/widget-font2gcode"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"http://widget-font2gcode-chilipeppr.c9users.io/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
+      <tr valign="top"><td>id</td><td>string</td><td>"com-zipwhip-widget-svg2gcode"<br><br>The ID of the widget. You must define this and make it unique.</td></tr><tr valign="top"><td>name</td><td>string</td><td>"Widget / svg2gcode"</td></tr><tr valign="top"><td>desc</td><td>string</td><td>"This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically."</td></tr><tr valign="top"><td>url</td><td>string</td><td>"http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html"</td></tr><tr valign="top"><td>fiddleurl</td><td>string</td><td>"http://ide.c9.io/chilipeppr/widget-svg2gcode"</td></tr><tr valign="top"><td>githuburl</td><td>string</td><td>"http://github.com/chilipeppr/widget-svg2gcode"</td></tr><tr valign="top"><td>testurl</td><td>string</td><td>"http://widget-svg2gcode-chilipeppr.c9users.io/widget.html"</td></tr><tr valign="top"><td>publish</td><td>object</td><td>Please see docs above.<br><br>Define the publish signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>subscribe</td><td>object</td><td>Please see docs above.<br><br>Define the subscribe signals that this widget/element owns or defines so that
 other widgets know how to subscribe to them and what they do.</td></tr><tr valign="top"><td>foreignPublish</td><td>object</td><td>Please see docs above.<br><br>Document the foreign publish signals, i.e. signals owned by other widgets
 or elements, that this widget/element publishes to.</td></tr><tr valign="top"><td>foreignSubscribe</td><td>object</td><td>Please see docs above.<br><br>Document the foreign subscribe signals, i.e. signals owned by other widgets
 or elements, that this widget/element subscribes to.</td></tr><tr valign="top"><td>init</td><td>function</td><td>function () <br><br>All widgets should have an init method. It should be run by the
-instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>drawText</td><td>function</td><td>function () </td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options, callback) <br><br>Create text in Three.js.<br>
+instantiating code like a workspace or a different widget.</td></tr><tr valign="top"><td>init3d</td><td>function</td><td>function () <br><br>Try to get a reference to the 3D viewer.</td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () <br><br>Call this method from init to setup all the buttons when this widget
+is first loaded. This basically attaches click events to your 
+buttons. It also turns on all the bootstrap popovers by scanning
+the entire DOM of the widget.</td></tr><tr valign="top"><td>isChanging</td><td>boolean</td><td></td></tr><tr valign="top"><td>onChange</td><td>function</td><td>function () </td></tr><tr valign="top"><td>onRender</td><td>function</td><td>function (callback) </td></tr><tr valign="top"><td>getSettings</td><td>function</td><td>function () </td></tr><tr valign="top"><td>generateGcode</td><td>function</td><td>function () <br><br>Iterate over the text3d that was generated and create
+Gcode to mill/cut the three.js object.</td></tr><tr valign="top"><td>drawSvg</td><td>function</td><td>function () </td></tr><tr valign="top"><td>extractSvgPathsFromSVGFile</td><td>function</td><td>function (file) </td></tr><tr valign="top"><td>createShape</td><td>function</td><td>function ( shape, color, x, y, z, rx, ry, rz, s ) <br><br>Create a Three.js Mesh from a Three.js shape.</td></tr><tr valign="top"><td>transformSVGPath</td><td>function</td><td>function (pathStr) <br><br>Turn an SVG Path into Three.js paths</td></tr><tr valign="top"><td>drawText</td><td>function</td><td>function (callback) <br><br>Draw the text to the 3D viewer based on the user settings
+in the widget.</td></tr><tr valign="top"><td>createText</td><td>function</td><td>function (text, options, callback) <br><br>Create text in Three.js.<br>
 Params: createText(text, options)<br>
 text - The text you want to render<br>
 options - a set of options to tweak the rendering<br><pre>
@@ -147,19 +152,9 @@ fontWeight: String. regular, bold
 size: Float. Size of the text.
 align: String. "left", "center"
 holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
+dashed: Boolean. If true then every other line is rendered in wireframe, rather than solid lines.
 curveSegments: Integer. Number of points on the curves. Default is 12.
-}</pre></td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>makeText</td><td>function</td><td>function (vals) <br><br>Pass in vals {
-color: 0xff0000, // default 0x999999
-text: "asdf",
-height: 10, // default 1
-size: 5, // default 10
-x: 0,
-y: 0,
-z: 0,
-}</td></tr><tr valign="top"><td>drawtexterator</td><td>function</td><td>function () </td></tr><tr valign="top"><td>onInit3dSuccess</td><td>function</td><td>function () </td></tr><tr valign="top"><td>obj3d</td><td>object</td><td></td></tr><tr valign="top"><td>obj3dmeta</td><td>object</td><td></td></tr><tr valign="top"><td>userCallbackForGet3dObj</td><td>object</td><td></td></tr><tr valign="top"><td>get3dObj</td><td>function</td><td>function (callback) </td></tr><tr valign="top"><td>get3dObjCallback</td><td>function</td><td>function (data, meta) </td></tr><tr valign="top"><td>is3dViewerReady</td><td>boolean</td><td></td></tr><tr valign="top"><td>clear3dViewer</td><td>function</td><td>function () </td></tr><tr valign="top"><td>mySceneGroup</td><td>object</td><td></td></tr><tr valign="top"><td>sceneReAddMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>sceneRemoveMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>btnSetup</td><td>function</td><td>function () <br><br>Call this method from init to setup all the buttons when this widget
-is first loaded. This basically attaches click events to your 
-buttons. It also turns on all the bootstrap popovers by scanning
-the entire DOM of the widget.</td></tr><tr valign="top"><td>onHelloBtnClick</td><td>function</td><td>function (evt) <br><br>onHelloBtnClick is an example of a button click event callback</td></tr><tr valign="top"><td>options</td><td>object</td><td>User options are available in this property for reference by your
+}</pre></td></tr><tr valign="top"><td>fontLoaded</td><td>object</td><td></td></tr><tr valign="top"><td>loadFont</td><td>function</td><td>function (fontOpts, callback) </td></tr><tr valign="top"><td>onInit3dSuccess</td><td>function</td><td>function () </td></tr><tr valign="top"><td>obj3d</td><td>object</td><td></td></tr><tr valign="top"><td>obj3dmeta</td><td>object</td><td></td></tr><tr valign="top"><td>userCallbackForGet3dObj</td><td>object</td><td></td></tr><tr valign="top"><td>get3dObj</td><td>function</td><td>function (callback) </td></tr><tr valign="top"><td>get3dObjCallback</td><td>function</td><td>function (data, meta) </td></tr><tr valign="top"><td>is3dViewerReady</td><td>boolean</td><td></td></tr><tr valign="top"><td>clear3dViewer</td><td>function</td><td>function () </td></tr><tr valign="top"><td>mySceneGroup</td><td>object</td><td></td></tr><tr valign="top"><td>sceneReAddMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>sceneRemoveMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>sceneDisposeMySceneGroup</td><td>function</td><td>function () </td></tr><tr valign="top"><td>onHelloBtnClick</td><td>function</td><td>function (evt) <br><br>onHelloBtnClick is an example of a button click event callback</td></tr><tr valign="top"><td>options</td><td>object</td><td>User options are available in this property for reference by your
 methods. If any change is made on these options, please call
 saveOptionsLocalStorage()</td></tr><tr valign="top"><td>setupUiFromLocalStorage</td><td>function</td><td>function () <br><br>Call this method on init to setup the UI by reading the user's
 stored settings from localStorage and then adjust the UI to reflect

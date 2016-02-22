@@ -1,18 +1,18 @@
 /* CSS for ChiliPeppr Widget */
 
-#com-zipwhip-widget-font2gcode {
+#com-zipwhip-widget-svg2gcode {
    
 }
 
-#com-zipwhip-widget-font2gcode .nav-tabs>li>a {
+#com-zipwhip-widget-svg2gcode .nav-tabs>li>a {
     padding: 2px 6px;
 }
 
-#com-zipwhip-widget-font2gcode .tab-pane {
+#com-zipwhip-widget-svg2gcode .tab-pane {
     padding-top:10px;
 }
 
-.btn-laserit {
+.btn-render {
     border-top-left-radius:0;
     border-bottom-left-radius:0;
     border:0;

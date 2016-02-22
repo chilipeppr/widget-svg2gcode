@@ -4,7 +4,9 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-    <title><!--(auto-fill by runme.js--></title>
+    <title>
+        <!--(auto-fill by runme.js-->
+    </title>
 
     <!-- ChiliPeppr is based on bootstrap CSS. -->
     <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -32,7 +34,7 @@
 </head>
 
 <body>
-    <div id="com-zipwhip-widget-font2gcode" class="panel panel-default">
+    <div id="com-zipwhip-widget-svg2gcode" class="panel panel-default">
         <div class="panel-heading ">
 
             <div class="btn-toolbar pull-right" role="toolbar">
@@ -51,40 +53,191 @@
                         <ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
                     </div>
                 </div>
-            </div> <span class="panel-title" data-toggle="popover">Font2Gcode</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
+            </div> <span class="panel-title" data-toggle="popover">SVG To Gcode</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
 
         </div>
         <div class="panel-body">
-        
-            <form class="form-inline">
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="text" class="form-control" xstyle="margin-bottom:5px;" placeholder="Enter text to render" />
-                        <div class="input-group-addon" style="padding:0;">
-                            <button type="button" xstyle="border-radius:0; border:0;" class="btn btn-default btn-laserit">Render</button>
+
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="active"><a href="#com-zipwhip-widget-svg2gcode-tab1" role="tab" data-toggle="tab">Render</a>
+                </li>
+                <li><a href="#com-zipwhip-widget-svg2gcode-tab2" role="tab" data-toggle="tab">Gcode</a></li>
+                <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab3" role="tab" data-toggle="tab">Dispenser</a></li>-->
+                <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab4" role="tab" data-toggle="tab">Laser</a></li>-->
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+
+                <!-- Tab 1 -->
+                <div class="tab-pane active" id="com-zipwhip-widget-svg2gcode-tab1">
+
+                    <p style="margin-top:0px;">Paste SVG Code Here</p>
+                    <textarea class="form-control input-svg" rows="3">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="115.13943"
+   height="110.96252"
+   viewBox="0 0 115.13943 110.96252"
+   enable-background="new 0 0 120 120.667"
+   xml:space="preserve"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Zipwhip-logo-inkscape.svg"><metadata
+     id="metadata3405"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+     id="defs3403"><defs
+       id="defs3339"><rect
+         height="120.667"
+         width="120"
+         id="SVGID_1_"
+         x="0"
+         y="0" /></defs><clipPath
+       id="SVGID_2_"><use
+         id="use3343"
+         overflow="visible"
+         xlink:href="#SVGID_1_"
+         style="overflow:visible"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" /></clipPath><defs
+       id="defs3347"><rect
+         id="SVGID_3_"
+         width="120"
+         height="120.667"
+         x="0"
+         y="0" /></defs><clipPath
+       id="SVGID_4_"><use
+         xlink:href="#SVGID_3_"
+         overflow="visible"
+         id="use3351"
+         style="overflow:visible"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" /></clipPath></defs><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1500"
+     inkscape:window-height="937"
+     id="namedview3401"
+     showgrid="false"
+     inkscape:zoom="6.1160052"
+     inkscape:cx="33.997879"
+     inkscape:cy="56.020527"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" /><path
+     clip-path="url(#SVGID_4_)"
+     d="m 99.934,5.228 -36.055,0 0,0.013 C 59.822,5.234 54.925,5.228 49.569,5.228 c -14.28,0 -23.055,10.153 -25.989,22.047 -2.109,8.587 -2.921,12.613 -12.207,48.44 -0.024,0.116 -0.061,0.251 -0.091,0.353 -0.038,0.161 -0.058,0.311 -0.083,0.464 l -8.86,34.318 c 0,0 -2.112,10.254 10.895,2.345 6.368,-3.875 16.397,-9.952 24.526,-14.867 l 26.063,0 0,-0.003 c 4.036,0.003 8.95,0.003 14.306,0.003 14.31,0 23.085,-10.173 26.014,-22.099 0.041,-0.169 6.73,-26.784 12.318,-48.954 C 119.789,13.093 113.682,5.228 99.934,5.228 m -2.663,25.607 c -0.33,4.255 -1.875,6.33 -4.258,8.471 l -35.122,27.456 28.4,0 -4.627,17.23 c -13.958,0 -35.176,0.003 -40.442,0.003 -6.502,0 -11.373,-5.307 -10.872,-11.809 0.293,-3.798 1.459,-5.835 3.404,-7.626 l 36.888,-28.77 -29.02,0 4.378,-16.56 40.38,0 c 6.503,0 11.392,5.111 10.891,11.605"
+     id="path3375"
+     inkscape:connector-curvature="0"
+     style="fill:#f37243"
+     transform="translate(-2.2120827,-5.228)" /></svg>
+                    </textarea>
+
+                    <p style="padding-top:10px;">Settings</p>
+
+                    <div class="form-group" xstyle="padding-left:18px;">
+                        <span xstyle="font-size:11px;">Points To Generate Per Path</span>
+                        <div class="input-group">
+                            <input type="number" min="0" max="10000" step="10" class="form-control input-pointsperpath" value="50" placeholder="Enter points">
+                            <div class="input-group-addon">points</div>
                         </div>
                     </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input class="input-holes" type="checkbox" value="1" checked> Generate holes
+                            <p style="font-size:10px;">For example, the path at the center of a 0</p>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-cut" value="solid"> Solid Cut
+                        </label>
+                        <br>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-cut" value="dashed" checked> Dashed Cut
+                        </label>
+                        <div class="form-group" style="padding-left:18px;">
+                            <span style="font-size:11px;">Point Spacing</span>
+                            <div class="input-group">
+                                <input type="number" min="1" max="99" step="1" class="form-control input-dashPercent" value="20" placeholder="Height">
+                                <div class="input-group-addon">% of Height</div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-            </form>
-        
-            <div class="input-group">
-              <div class="input-group-addon">Height</div>
-              <input type="text" class="form-control" value="10" placeholder="Height">
-              <div class="input-group-addon">mm</div>
-            </div>
-            
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" value="1" checked>
-                Generate holes, i.e. like center of a 0
-              </label>
-            </div>
-                
-            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
 
-            <p style="margin-top:10px;">Gcode</p>
-            <textarea class="form-control" rows="3"></textarea>
+                <!-- Tab 2 -->
+                <div class="tab-pane" id="com-zipwhip-widget-svg2gcode-tab2">
 
+                    <div class="form-group">
+                        <p style="margin-bottom:0">Mode</p>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-mode" value="laser" checked> Laser
+                        </label>
+                        <div class="form-group mode-laser" style="padding-left:20px;margin-bottom:0">
+                            <p style="margin-bottom:0;font-size:11px;">Turn Laser On With</p>
+                            <label class="radio-inline">
+                                <input type="radio" name="com-chilipeppr-widget-svg2gcode-laseron" value="M3" checked> M3 (Spindle)
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="com-chilipeppr-widget-svg2gcode-laseron" value="M7"> M7 (Coolant)
+                            </label>
+                        </div>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-mode" value="mill"> Mill
+                        </label>
+                    </div>
+
+                    <div class="form-group" xstyle="padding-left:18px;">
+                        <span xstyle="font-size:11px;">Feedrate During Mill/Laser</span>
+                        <div class="input-group">
+                            <input type="number" min="0" max="50000" step="10" class="form-control input-feedrate" value="200" placeholder="Enter feedrate">
+                            <div class="input-group-addon">mm/min</div>
+                        </div>
+                    </div>
+
+
+                    <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
+
+                    <p style="margin-top:10px;">Gcode</p>
+                    <textarea class="form-control gcode" rows="3"></textarea>
+
+                </div>
+                <!-- End Tab 2 -->
+            </div>
         </div>
     </div>
 </body>

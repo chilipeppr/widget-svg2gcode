@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-    <title>Widget / Font2Gcode</title>
+    <title>Widget / svg2gcode</title>
 
     <!-- ChiliPeppr is based on bootstrap CSS. -->
     <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -16,19 +16,19 @@
     <style type='text/css'>
 /* CSS for ChiliPeppr Widget */
 
-#com-zipwhip-widget-font2gcode {
+#com-zipwhip-widget-svg2gcode {
    
 }
 
-#com-zipwhip-widget-font2gcode .nav-tabs>li>a {
+#com-zipwhip-widget-svg2gcode .nav-tabs>li>a {
     padding: 2px 6px;
 }
 
-#com-zipwhip-widget-font2gcode .tab-pane {
+#com-zipwhip-widget-svg2gcode .tab-pane {
     padding-top:10px;
 }
 
-.btn-laserit {
+.btn-render {
     border-top-left-radius:0;
     border-bottom-left-radius:0;
     border:0;
@@ -66,6 +66,8 @@ requirejs.config({
         // Example of how to define the key (you make up the key) and the URL
         // Make sure you DO NOT put the .js at the end of the URL
         // SmoothieCharts: '//smoothiecharts.org/smoothie',
+        Snap: '//i2dcui.appspot.com/slingshot?url=http://snapsvg.io/assets/js/snap.svg-min.js',
+        //Snap: '//i2dcui.appspot.com/slingshot?url=https://raw.githubusercontent.com/adobe-webplatform/Snap.svg/master/src/svg.js'
     },
     shim: {
         // See require.js docs for how to define dependencies that
@@ -73,7 +75,7 @@ requirejs.config({
     }
 });
 
-cprequire_test(["inline:com-zipwhip-widget-font2gcode"], function(myWidget) {
+cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
 
     // Test this element. This code is auto-removed by the chilipeppr.load()
     // when using this widget in production. So use the cpquire_test to do things
@@ -133,22 +135,23 @@ cprequire_test(["inline:com-zipwhip-widget-font2gcode"], function(myWidget) {
     
     $('#' + myWidget.id).css('margin', '20px');
     $('title').html(myWidget.name);
+    // $('#' + myWidget.id).css('background', 'none');
 
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
-cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other dependencies here */ ], function() {
+cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], function() {
     return {
         /**
          * The ID of the widget. You must define this and make it unique.
          */
-        id: "com-zipwhip-widget-font2gcode", // Make the id the same as the cpdefine id
-        name: "Widget / Font2Gcode", // The descriptive name of your widget.
+        id: "com-zipwhip-widget-svg2gcode", // Make the id the same as the cpdefine id
+        name: "Widget / svg2gcode", // The descriptive name of your widget.
         desc: "This widget lets you type text, render it into the 3D viewer, and then generate the gcode for the font. If you want to mill/laser/print text this is a great way to do it programmatically.",
-        url: "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
-        fiddleurl: "http://ide.c9.io/chilipeppr/widget-font2gcode", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
-        githuburl: "http://github.com/chilipeppr/widget-font2gcode", // The backing github repo
-        testurl: "http://widget-font2gcode-chilipeppr.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
+        url: "http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
+        fiddleurl: "http://ide.c9.io/chilipeppr/widget-svg2gcode", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
+        githuburl: "http://github.com/chilipeppr/widget-svg2gcode", // The backing github repo
+        testurl: "http://widget-svg2gcode-chilipeppr.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
         /**
          * Define pubsub signals below. These are basically ChiliPeppr's event system.
          * ChiliPeppr uses amplify.js's pubsub system so please refer to docs at
@@ -198,9 +201,10 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
         init: function() {
             console.log("I am being initted. Thanks.");
 
+            this.setupUiFromLocalStorage();
+
             this.init3d();
             
-            this.setupUiFromLocalStorage();
             this.btnSetup();
             this.forkSetup();
 
@@ -237,518 +241,6 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                 this.onInit3dSuccess();
             }
 
-        },
-        drawText: function() {
-            console.log("doing drawText");
-            
-            var that = this;
-            
-            var txt = "313-554-7502";
-            this.createText(txt, {
-                size: 10,
-                fontWeight: "bold",
-                holes: true, // don't generate hole paths cuz they'll get cut pointlessly
-                textalign: "center", // center point
-                
-            }, function(txt3d) {
-                console.log("text is created. txt3d:", txt3d);
-                that.mySceneGroup = txt3d;
-                that.sceneReAddMySceneGroup();
-            })
-        },
-        /**
-         * Create text in Three.js.<br>
-         * Params: createText(text, options)<br>
-         *   text - The text you want to render<br>
-         *   options - a set of options to tweak the rendering<br><pre>
-         *      {
-         *        fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
-         *        fontWeight: String. regular, bold
-                  size: Float. Size of the text.
-                  align: String. "left", "center"
-                  holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
-                  curveSegments: Integer. Number of points on the curves. Default is 12.
-                }</pre>
-        **/
-        createText: function(text, options, callback) {
-            
-            // taken from http://threejs.org/examples/webgl_geometry_text.html
-            var fontMap = {
-
-				"helvetiker": 0,
-				"optimer": 1,
-				"gentilis": 2,
-				"droid/droid_sans": 3,
-				"droid/droid_serif": 4
-
-			};
-
-			var weightMap = {
-
-				"regular": 0,
-				"bold": 1
-
-			};
-            
-            // figure out defaults and overrides
-            var opts = {
-
-                font: null,
-                
-				size: options.size ? options.size : 20,
-				height: options.height ? options.height : 10,
-				curveSegments: options.curveSegments ? options.curveSegments : 4,
-
-                holes: options.holes ? true : false,
-                align: options.align ? options.align : "left",
-				// bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
-				// bevelSize: options.bevelSize ? options.bevelSize : 1.5,
-				// bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
-
-                // mirror: options.mirror ? options.mirror : false,
-                
-				//material: 0,
-				//extrudeMaterial: 1
-
-			}
-			console.log("opts:", opts);
-            
-            var fontOpts = {
-                fontName : options.fontName ? options.fontName : "helvetiker",
-                fontWeight : options.fontWeight ? options.fontWeight : "regular",
-            }
-            console.log("fontOpts:", fontOpts);
-            
-            this.loadFont(fontOpts, function(font) {
-                    
-                // we have our font loaded, now we can render
-                opts.font = font;
-                
-                var group = new THREE.Group();
-    			//group.position.y = 100;
-                
-                console.log("final opts to render text with:", opts);
-    			//var textGeo = new THREE.TextGeometry( text, opts );
-    			
-    			//var font = opts.font;
-
-            	if ( font instanceof THREE.Font === false ) {
-            
-            		console.error( 'THREE.TextGeometry: font parameter is not an instance of THREE.Font.' );
-            		//return new THREE.Geometry();
-                    return;
-            	}
-            
-            	var shapes = font.generateShapes( text, opts.size, opts.curveSegments );
-                console.log("shapes:", shapes);
-                //var textGeo = new THREE.ShapeGeometry( shapes );
-                //console.log("textGeo:", textGeo);
-                
-                var material = new THREE.LineBasicMaterial({
-                	color: 0x0000ff
-                });
-
-                var textGroup = new THREE.Group();
-                
-                // loop thru each shape and generate a line object
-                for (var i in shapes) {
-                    
-                    var shape = shapes[i];
-                    
-                    // lines
-    				shape.autoClose = true;
-    				var points = shape.createPointsGeometry();
-    				
-    				// solid line
-    				var line = new THREE.Line( points, material );
-    				line.userData["character"] = text[i];
-    				line.userData["characterIndex"] = i;
-    				line.userData["fromText"] = text;
-    				console.log("line:", line);
-    				
-    				textGroup.add( line );
-    				
-    				// see if there are holes
-    				if (opts.holes) {
-        				for (var i2 in shape.holes) {
-        				    var shape = shape.holes[i2];
-        				    shape.autoClose = true;
-            				var points = shape.createPointsGeometry();
-            				
-            				// solid line
-            				var line = new THREE.Line( points, material );
-            				line.userData["character"] = text[i];
-            				line.userData["characterIndex"] = i;
-            				line.userData["isHole"] = true;
-            				line.userData["fromText"] = text;
-            				
-            				textGroup.add( line );
-        				    console.log("got hole. generating line.")
-        				}
-    				}
-                    
-                }
-				console.log("textGroup:", textGroup);
-				
-				var bbox = new THREE.Box3().setFromObject(textGroup);
-				
-    			var centerOffset = -0.5 * ( bbox.max.x - bbox.min.x );
-    
-                // y position of text
-                var hover = 0;
-                
-    			textGroup.position.x = centerOffset;
-    			textGroup.position.y = hover;
-    			textGroup.position.z = 0;
-    
-    			textGroup.rotation.x = 0;
-    			textGroup.rotation.y = Math.PI * 2;
-                
-    			group.add( textGroup );
-    
-    			// call the user's callback with our final three.js object
-    			callback(group);
-
-                    
-            });
-
-		},
-		loadFont: function(fontOpts, callback) {
-
-            console.log("THREE:", THREE);
-			var loader = new THREE.FontLoader();
-			// threejs.org/examples/fonts/helvetiker_bold.typeface.js
-			// https://i2dcui.appspot.com/js/three/fonts/
-			var url = 'https://i2dcui.appspot.com/js/three/fonts/' + 
-			    fontOpts.fontName + '_' + 
-			    fontOpts.fontWeight + '.typeface.js';
-			loader.load( url, function ( response ) {
-				var font = response;
-				console.log("loaded font:", font);
-				callback(font);
-				//refreshText();
-			});
-
-		},
-		
-        /**
-         * Pass in vals {
-         *   color: 0xff0000, // default 0x999999
-         *   text: "asdf",
-         *   height: 10, // default 1
-         *   size: 5, // default 10
-         *   x: 0,
-         *   y: 0,
-         *   z: 0,
-         * }
-         */
-        makeText: function(vals) {
-            var shapes, geom, mat, mesh;
-            
-            console.log("Do we have the global ThreeHelvetiker font:", ThreeHelvetiker);
-            console.log("THREE.FontUtils:", THREE.FontUtils);
-            
-            if (!THREE.FontUtils) {
-                console.error("THREE.FontUtils not defined per bug in r73 of three.js. So not making text.");
-                return;
-            }
-            
-            THREE.FontUtils.loadFace(ThreeHelvetiker);
-            shapes = THREE.FontUtils.generateShapes( vals.text, {
-                font: "helvetiker",
-                height: vals.height ? vals.height : 1,
-                //weight: "normal",
-                size: vals.size ? vals.size : 10
-            } );
-            geom = new THREE.ShapeGeometry( shapes );
-            mat = new THREE.MeshPhongMaterial({
-                color: vals.color ? vals.color : 0x999999,
-                side: THREE.DoubleSide,
-                // transparent: true,
-                // opacity: vals.opacity ? vals.opacity : 0.5,
-            });
-            mesh = new THREE.Mesh( geom, mat );
-            
-            mesh.position.x = vals.x;
-            mesh.position.y = vals.y;
-            mesh.position.z = vals.z;
-            
-            return mesh;
-            
-        },
-        drawtexterator: function() {
-            // draw the major components of the beer bot
-            var main = new THREE.Object3D();
-            
-            
-            // create base box
-            var baseGeo = new THREE.BoxGeometry( 500, 700, 20 );
-            // var material = new THREE.MeshNormalMaterial({
-            //         color: 0xd78356,
-            //         transparent: true,
-            //         opacity: 0.99,
-            //         side: THREE.SingleSide,
-            //         depthWrite: false
-            //     });
-            var baseMat = new THREE.MeshPhongMaterial({
-                    color: 0xd5d3cb,
-                    // transparent: true,
-                    // opacity: 0.99,
-                    // side: THREE.DoubleSide,
-                    // shading: THREE.FlatShading,
-                    // depthWrite: true
-                });
-            // var material = new THREE.MeshBasicMaterial({
-            //         color: 0xd78356,
-            //         transparent: true,
-            //         opacity: 0.99,
-            //         side: THREE.SingleSide,
-            //         depthWrite: false
-            //     });
-            //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-            var baseMesh = new THREE.Mesh( baseGeo, baseMat );
-            baseMesh.position.setZ(-10);
-            //main.add( baseMesh );
-            
-            // alternate drawing of box as extrude
-            var rectLength = 500, rectWidth = 700;
-			var rectShape = new THREE.Shape();
-			rectShape.moveTo( 0,0 );
-			rectShape.lineTo( 0, rectWidth );
-			rectShape.lineTo( rectLength, rectWidth );
-			rectShape.lineTo( rectLength, 0 );
-			rectShape.lineTo( 0, 0 );
-			var extrudeSettings = { 
-                amount: 30, bevelEnabled: true, bevelSegments: 2, steps: 2, 
-                bevelSize: 3, bevelThickness: 3 };
-			var geometry = new THREE.ExtrudeGeometry( rectShape, extrudeSettings );
-
-			var rectMesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
-			    color: color,
-			 //   side: THREE.SingleSide
-		    } ) );
-		    rectMesh.position.setX(-rectLength/2);
-		    rectMesh.position.setY(-rectWidth/2);
-		    rectMesh.position.setY(rectMesh.position.y + 100);
-		    rectMesh.position.setZ(-15);
-		    rectMesh.receiveShadow = true;
-		    rectMesh.name = "Base Box";
-		    main.add(rectMesh);
-            
-            // draw lazy susan group
-            var lazySusanGroup = new THREE.Object3D();
-            
-            geometry = new THREE.CylinderGeometry( 450 / 2, 450 / 2, 20, 32 );
-            var color = 0x938a79;
-            var lazySusanMaterial = new THREE.MeshPhongMaterial({
-                    color: color,
-                    // transparent: true,
-                    // opacity: 0.2,
-                    // side: THREE.DoubleSide,
-                    // polygonOffset: true,
-                    // polygonOffsetFactor: 2,
-                    // polygonOffsetUnits: 0.5,
-                    // depthTest: false,
-                    // depthWrite: false
-                });
-            // var cylinder = new THREE.Mesh( geometry, material );
-            // cylinder.rotateX(Math.PI / 2);
-            // cylinder.position.setZ(11);
-            // cylinder.position.setY(-100);
-            //main.add( cylinder );
-            
-            var shape = new THREE.Shape();
-            shape.absellipse(0, 0, 450 / 2, 450 / 2, 0, Math.PI * 2);
-            //shape.autoClose = true;
-            
-            // let's make a circle with 8 segments so we can extract the xy val for each vertex
-            var radius = 350 / 2;
-            var segments = 8;
-            var holeCenterGeometry = new THREE.CircleGeometry( radius, segments );
-
-            for (var hi = 0; hi < 8; hi++) {
-                
-                var pt = holeCenterGeometry.vertices[hi + 1]
-                var hole = new THREE.Path();
-                hole.absellipse(pt.x, pt.y, 85/2, 85/2, 0, Math.PI * 2, true);
-                shape.holes.push(hole);
-            }
-            
-            // var geometry = new THREE.ShapeGeometry( shape );
-
-// 			var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
-			 //   color: color, side: THREE.DoubleSide } ) );
-// 			mesh.position.set( x, y, z - 125 );
-// 			mesh.rotation.set( rx, ry, rz );
-// 			mesh.scale.set( s, s, s );
-// 			main.add( mesh );
-            
-            // extruded shape
-            var extrudeSettings = { 
-                amount: 30, bevelEnabled: true, bevelSegments: 2, steps: 2, 
-                bevelSize: 2.5, bevelThickness: 2.5 };
-			var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-
-			var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { 
-			    color: color,
-			    depthTest: true, 
-                depthWrite: true, 
-                polygonOffset: true,
-                polygonOffsetFactor: -4
-			 //   side: THREE.SingleSide
-		    } ) );
-// 			mesh.position.set( x, y, z - 75 );
-// 			mesh.rotation.set( rx, ry, rz );
-// 			mesh.scale.set( s, s, s );
-            mesh.position.setZ(40);
-            //mesh.position.setY(-100);
-            mesh.castShadow = true;
-            mesh.name = "Lazy Susan";
-			lazySusanGroup.add( mesh );
-			
-			// Red solo cups
-			var redCupGroup = new THREE.Object3D();
-			
-			var redCupGeo = new THREE.CylinderGeometry( 45, 35, 100, 32 );
-			var color = 0x8B0000;
-            var redCupMat = new THREE.MeshPhongMaterial({
-                    color: color,
-                    // transparent: true,
-                    // opacity: 0.2,
-                    // side: THREE.DoubleSide,
-                    // polygonOffset: true,
-                    // polygonOffsetFactor: 2,
-                    // polygonOffsetUnits: 0.5,
-                    // depthTest: false,
-                    // depthWrite: false
-                });
-                
-            var ptZero = new THREE.Vector3(0,0,0);
-            for(var i in holeCenterGeometry.vertices) {
-                if (i == 0 || i == 9) continue;
-                var pt = holeCenterGeometry.vertices[i];
-                var redCupMesh = new THREE.Mesh( redCupGeo, redCupMat );
-                redCupMesh.rotateX(Math.PI / 2);
-                redCupMesh.position.set(pt.x, pt.y, 0);
-                redCupGroup.add(redCupMesh);
-                
-                // add cup numbers
-                var numMesh = this.makeText(
-                    {text:i, height:3, x:pt.x, y:pt.y, z:80, size:30}
-                );
-                // need to center
-                
-                numMesh.rotateX(Math.PI / 2);
-                
-                // create grp cuz i don't know how to apply 2 rotations
-                // but the group does it for me
-                var numGrp = new THREE.Object3D();
-                numGrp.add(numMesh);
-                
-                //var pt2 = new THREE.Vector2(pt.x, pt.y);
-                // computes the angle in radians with respect to the positive x-axis
-        		var angleto = Math.atan2( pt.y, pt.x );
-        		if ( angleto < 0 ) angleto += 2 * Math.PI;
-                //numMesh.rotateZ(angle);
-                var pt3 = new THREE.Vector3(pt.x, pt.y, 0);
-                pt3.normalize();
-                console.log("pt3:", pt3, "ptZero:", ptZero);
-                //var v = ptZero;
-                //var theta = pt3.dot( v ) / ( Math.sqrt( pt3.lengthSq() * v.lengthSq() ) );
-                //var angleto = theta; //pt3.angleTo(ptZero);
-                //var angleto = ptZero.angleTo(pt3);
-                console.log("angleto:", angleto);
-                //numGrp.rotateZ(angleto);
-                //numGrp.rotateZ(Math.PI / 2);
-                //numGrp.position.set(pt.x, pt.y, 0);
-                
-                redCupGroup.add(numGrp);
-            }
-            redCupGroup.position.setZ(70);
-            lazySusanGroup.add( redCupGroup );
-            
-			
-			main.add(lazySusanGroup);
-			
-            // var extrudeSettings = { amount: 18, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-            // var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-            // var lazysusan = new THREE.Mesh( geometry, lazySusanMaterial );
-            // lazysusan.position.setZ(10);
-            // lazysusan.position.setY(-100);
-            //main.add(lazysusan);
-
-            // remove the grid
-            this.obj3dmeta.widget.gridTurnOff();
-            
-            this.mySceneGroup = main;
-            this.sceneReAddMySceneGroup();
-            this.obj3dmeta.camera.far = 5000;
-            this.obj3dmeta.camera.near = 10;
-            console.log("texterator three obj:", this.obj3d, "objmeta:", this.obj3dmeta);
-            
-            chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
-            
-        },
-
-        onInit3dSuccess: function () {
-            console.log("onInit3dSuccess. That means we finally got an object back.");
-            this.clear3dViewer();
-            
-            // open the last file
-            //var that = this;
-            //setTimeout(function () {
-                //that.open();
-            //}, 1000);
-            //this.drawtexterator();
-            this.drawText();
-        },
-        obj3d: null, // gets the 3dviewer obj stored in here on callback
-        obj3dmeta: null, // gets metadata for 3dviewer
-        userCallbackForGet3dObj: null,
-        get3dObj: function (callback) {
-            this.userCallbackForGet3dObj = callback;
-            chilipeppr.subscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this, this.get3dObjCallback);
-            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/request3dObject", "");
-            chilipeppr.unsubscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this.get3dObjCallback);
-        },
-        get3dObjCallback: function (data, meta) {
-            console.log("got 3d obj:", data, meta);
-            this.obj3d = data;
-            this.obj3dmeta = meta;
-            if (this.userCallbackForGet3dObj) {
-                //setTimeout(this.userCallbackForGet3dObj.bind(this), 200);
-                //console.log("going to call callback after getting back the new 3dobj. this.userCallbackForGet3dObj:", this.userCallbackForGet3dObj);
-                this.userCallbackForGet3dObj();
-                this.userCallbackForGet3dObj = null;
-            }
-        },
-        is3dViewerReady: false,
-        clear3dViewer: function () {
-            console.log("clearing 3d viewer");
-            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneclear");
-            //if (this.obj3d) this.obj3d.children = [];            
-            /*
-            this.obj3d.children.forEach(function(obj3d) {
-                chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneremove", obj3d);
-            });
-            */
-            this.is3dViewerReady = true;
-            
-            // this should reset the 3d viewer to resize to high dpi displays
-            $(window).trigger("resize");
-        },
-        mySceneGroup: null,
-        sceneReAddMySceneGroup: function() {
-            if (this.obj3d && this.mySceneGroup) {
-                this.obj3d.add(this.mySceneGroup);
-            }
-            this.obj3dmeta.widget.wakeAnimate();
-        },
-        sceneRemoveMySceneGroup: function() {
-            if (this.obj3d && this.mySceneGroup) {
-                this.obj3d.remove(this.mySceneGroup);
-            }
-            this.obj3dmeta.widget.wakeAnimate();
         },
         /**
          * Call this method from init to setup all the buttons when this widget
@@ -805,6 +297,808 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
             // when the callback is called
             $('#' + this.id + ' .btn-helloworld2').click(this.onHelloBtnClick.bind(this));
 
+            // render
+            $('#' + this.id + ' .btn-render').click(this.onRender.bind(this));
+
+            // on change
+            $('#' + this.id + ' input').change(this.onChange.bind(this));
+            $('#' + this.id + ' select').change(this.onChange.bind(this));
+        },
+        isChanging: false,
+        onChange: function() {
+            if (this.isChanging) {
+                console.warn("another change is in process");
+                return;
+            } else {
+                this.isChanging = true;
+                var that = this;
+                this.onRender(function() {
+                    that.isChanging = false;
+                });
+            }
+        },
+        onRender: function(callback) {
+            
+            // remove text3d from the 3d viewer
+            this.sceneRemoveMySceneGroup();
+            
+            // need this to force garbage collection cuz three.js
+            // hangs onto geometry
+            this.sceneDisposeMySceneGroup();
+            
+            // get the user settings from the UI
+            this.getSettings();
+            
+            var that = this;
+            
+            this.drawSvg();
+            
+            //this.extractSvgPathsFromSVGFile(this.options.svg);
+            
+            // actually render the text
+            // this.drawText(function() {
+                
+            //     that.generateGcode();
+                
+            //     if (callback) callback();
+            // });    
+        },
+        getSettings: function() {
+            // get text
+            this.options["svg"] = $('#' + this.id + ' .input-svg').val();
+            this.options["pointsperpath"] = parseInt($('#' + this.id + ' .input-pointsperpath').val());
+            
+            this.options["holes"] = $('#' + this.id + ' .input-holes').is(":checked");
+            this.options["cut"] = $('#' + this.id + ' input[name=com-chilipeppr-widget-svg2gcode-cut]:checked').val();
+            this.options["dashPercent"] = $('#' + this.id + ' .input-dashPercent').val();
+            this.options["mode"] = $('#' + this.id + ' input[name=com-chilipeppr-widget-svg2gcode-mode]:checked').val();
+            this.options["laseron"] = $('#' + this.id + ' input[name=com-chilipeppr-widget-svg2gcode-laseron]:checked').val();
+            this.options["feedrate"] = $('#' + this.id + ' .input-feedrate').val();
+            console.log("settings:", this.options);    
+            
+            if (this.options.mode == "laser") {
+                 $('#' + this.id + ' .mode-laser').removeClass("hidden");
+                 
+            } else {
+                $('#' + this.id + ' .mode-laser').addClass("hidden");
+            }
+            
+            //this.saveOptionsLocalStorage();
+        },
+        /**
+         * Iterate over the text3d that was generated and create
+         * Gcode to mill/cut the three.js object.
+         */
+        generateGcode: function() {
+            
+            var g = "(Gcode generated by ChiliPeppr svg2gcode Widget)\n";
+            g += "(Text: " + this.mySceneGroup.userData.text  + ")\n";
+            g += "G21 (mm)\n";
+            
+            // get the THREE.Group() that is the txt3d
+            var grp = this.mySceneGroup;
+            var txtGrp = this.mySceneGroup.children[0];
+
+            var that = this;
+            grp.traverse( function(child) {
+                if (child.type == "Line") {
+                    // let's create gcode for all points in line
+                    for (var i in child.geometry.vertices) {
+                        var localPt = child.geometry.vertices[i];
+                        var worldPt = grp.localToWorld(localPt);
+                        if (i == 0) {
+                            // first point in line where we start lasering
+                            // move to poing
+                            g += "G0 X" + worldPt.x.toFixed(3) + 
+                                " Y" + worldPt.y.toFixed(3) + "\n";
+                            // set feedrate for subsequent G1 moves
+                            //g += "F" + that.options.feedrate + "\n";
+                        }
+                        else {
+                            g += that.options.laseron + " (laser on)\n";
+                            g += "G1 F" + that.options.feedrate + 
+                                " X" + worldPt.x.toFixed(3) + 
+                                " Y" + worldPt.y.toFixed(3) + "\n";
+                        }
+                    }
+                    
+                    // turn off laser at end of line
+                    if (that.options.laseron == "M3")
+                        g += "M6 (laser off)\n";
+                    else
+                        g += "M9 (laser off)\n";
+                }
+            });
+            
+            
+            
+            console.log("gcode:", g);
+            $('#' + this.id + " .gcode").val(g);
+        },
+        drawSvg: function() {
+            var svg3d = this.extractSvgPathsFromSVGFile(this.options.svg);
+            this.mySceneGroup = svg3d;
+            this.sceneReAddMySceneGroup();    
+        },
+        extractSvgPathsFromSVGFile: function(file) {
+            
+            var fragment = Snap.parse(file);
+            console.log("fragment:", fragment);
+            
+            var path = fragment.select("path");
+            console.log("path:", path, "len:", path.getTotalLength());
+            
+            var len = path.getTotalLength();
+            var lenPerPt = len / this.options.pointsperpath;
+            console.log("len:", len, "lenPerPt:", lenPerPt, "pointsperpath:", this.options.pointsperpath);
+            
+            var spacedPoints = new THREE.Geometry();
+            
+            for (var i = 0; i < this.options.pointsperpath; i++ ) {
+                var pt = path.getPointAtLength(lenPerPt * i);
+                console.log("pt:", pt);
+                spacedPoints.vertices.push(new THREE.Vector3(pt.x, pt.y, 0));
+            }
+            
+            var material = new THREE.LineBasicMaterial({
+                	color: 0x0000ff
+                });
+
+            var svgGroup = new THREE.Group();
+                
+            var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: 1 } ) );
+		    particles.position.z = 1;
+		    svgGroup.add(particles);
+            
+            return svgGroup;
+        },
+        /**
+         * Create a Three.js Mesh from a Three.js shape.
+         */
+        createShape: function( shape, color, x, y, z, rx, ry, rz, s ) {
+          // flat shape
+        
+          var geometry = new THREE.ShapeGeometry( shape );
+          var material = new THREE.MeshBasicMaterial({
+            color: color, 
+            side: THREE.DoubleSide, 
+            overdraw: true
+          });
+          
+          var mesh = new THREE.Mesh( geometry, material );
+          mesh.position.set( x, y, z );
+          mesh.rotation.set( rx, ry, rz );
+          mesh.scale.set( s, s, s );
+        
+          return mesh;
+        },
+        /**
+         * Turn an SVG Path into Three.js paths
+         */
+        transformSVGPath: function(pathStr) {
+        
+          const DIGIT_0 = 48, DIGIT_9 = 57, COMMA = 44, SPACE = 32, PERIOD = 46,
+              MINUS = 45;
+        
+          var path = new THREE.Shape();
+          
+          var idx = 1, len = pathStr.length, activeCmd,
+              x = 0, y = 0, nx = 0, ny = 0, firstX = null, firstY = null,
+              x1 = 0, x2 = 0, y1 = 0, y2 = 0,
+              rx = 0, ry = 0, xar = 0, laf = 0, sf = 0, cx, cy;
+          
+          function eatNum() {
+            var sidx, c, isFloat = false, s;
+            // eat delims
+            while (idx < len) {
+              c = pathStr.charCodeAt(idx);
+              if (c !== COMMA && c !== SPACE)
+                break;
+              idx++;
+            }
+            if (c === MINUS)
+              sidx = idx++;
+            else
+              sidx = idx;
+            // eat number
+            while (idx < len) {
+              c = pathStr.charCodeAt(idx);
+              if (DIGIT_0 <= c && c <= DIGIT_9) {
+                idx++;
+                continue;
+              }
+              else if (c === PERIOD) {
+                idx++;
+                isFloat = true;
+                continue;
+              }
+              
+              s = pathStr.substring(sidx, idx);
+              return isFloat ? parseFloat(s) : parseInt(s);
+            }
+            
+            s = pathStr.substring(sidx);
+            return isFloat ? parseFloat(s) : parseInt(s);
+          }
+          
+          function nextIsNum() {
+            var c;
+            // do permanently eat any delims...
+            while (idx < len) {
+              c = pathStr.charCodeAt(idx);
+              if (c !== COMMA && c !== SPACE)
+                break;
+              idx++;
+            }
+            c = pathStr.charCodeAt(idx);
+            return (c === MINUS || (DIGIT_0 <= c && c <= DIGIT_9));
+          }
+          
+          var canRepeat;
+          activeCmd = pathStr[0];
+          while (idx <= len) {
+            canRepeat = true;
+            switch (activeCmd) {
+                // moveto commands, become lineto's if repeated
+              case 'M':
+                x = eatNum();
+                y = eatNum();
+                path.moveTo(x, y);
+                activeCmd = 'L';
+                break;
+              case 'm':
+                x += eatNum();
+                y += eatNum();
+                path.moveTo(x, y);
+                activeCmd = 'l';
+                break;
+              case 'Z':
+              case 'z':
+                canRepeat = false;
+                if (x !== firstX || y !== firstY)
+                  path.lineTo(firstX, firstY);
+                break;
+                // - lines!
+              case 'L':
+              case 'H':
+              case 'V':
+                nx = (activeCmd === 'V') ? x : eatNum();
+                ny = (activeCmd === 'H') ? y : eatNum();
+                path.lineTo(nx, ny);
+                x = nx;
+                y = ny;
+                break;
+              case 'l':
+              case 'h':
+              case 'v':
+                nx = (activeCmd === 'v') ? x : (x + eatNum());
+                ny = (activeCmd === 'h') ? y : (y + eatNum());
+                path.lineTo(nx, ny);
+                x = nx;
+                y = ny;
+                break;
+                // - cubic bezier
+              case 'C':
+                x1 = eatNum(); y1 = eatNum();
+              case 'S':
+                if (activeCmd === 'S') {
+                  x1 = 2 * x - x2; y1 = 2 * y - y2;
+                }
+                x2 = eatNum();
+                y2 = eatNum();
+                nx = eatNum();
+                ny = eatNum();
+                path.bezierCurveTo(x1, y1, x2, y2, nx, ny);
+                x = nx; y = ny;
+                break;
+              case 'c':
+                x1 = x + eatNum();
+                y1 = y + eatNum();
+              case 's':
+                if (activeCmd === 's') {
+                  x1 = 2 * x - x2;
+                  y1 = 2 * y - y2;
+                }
+                x2 = x + eatNum();
+                y2 = y + eatNum();
+                nx = x + eatNum();
+                ny = y + eatNum();
+                path.bezierCurveTo(x1, y1, x2, y2, nx, ny);
+                x = nx; y = ny;
+                break;
+                // - quadratic bezier
+              case 'Q':
+                x1 = eatNum(); y1 = eatNum();
+              case 'T':
+                if (activeCmd === 'T') {
+                  x1 = 2 * x - x1;
+                  y1 = 2 * y - y1;
+                }
+                nx = eatNum();
+                ny = eatNum();
+                path.quadraticCurveTo(x1, y1, nx, ny);
+                x = nx;
+                y = ny;
+                break;
+              case 'q':
+                x1 = x + eatNum();
+                y1 = y + eatNum();
+              case 't':
+                if (activeCmd === 't') {
+                  x1 = 2 * x - x1;
+                  y1 = 2 * y - y1;
+                }
+                nx = x + eatNum();
+                ny = y + eatNum();
+                path.quadraticCurveTo(x1, y1, nx, ny);
+                x = nx; y = ny;
+                break;
+                // - elliptical arc
+              case 'A':
+                rx = eatNum();
+                ry = eatNum();
+                xar = eatNum() * DEGS_TO_RADS;
+                laf = eatNum();
+                sf = eatNum();
+                nx = eatNum();
+                ny = eatNum();
+                if (rx !== ry) {
+                  console.warn("Forcing elliptical arc to be a circular one :(",
+                               rx, ry);
+                }
+                // SVG implementation notes does all the math for us! woo!
+                // http://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
+                // step1, using x1 as x1'
+                x1 = Math.cos(xar) * (x - nx) / 2 + Math.sin(xar) * (y - ny) / 2;
+                y1 = -Math.sin(xar) * (x - nx) / 2 + Math.cos(xar) * (y - ny) / 2;
+                // step 2, using x2 as cx'
+                var norm = Math.sqrt(
+                  (rx*rx * ry*ry - rx*rx * y1*y1 - ry*ry * x1*x1) /
+                  (rx*rx * y1*y1 + ry*ry * x1*x1));
+                if (laf === sf)
+                  norm = -norm;
+                x2 = norm * rx * y1 / ry;
+                y2 = norm * -ry * x1 / rx;
+                // step 3
+                cx = Math.cos(xar) * x2 - Math.sin(xar) * y2 + (x + nx) / 2;
+                cy = Math.sin(xar) * x2 + Math.cos(xar) * y2 + (y + ny) / 2;
+                
+                var u = new THREE.Vector2(1, 0),
+                    v = new THREE.Vector2((x1 - x2) / rx,
+                                          (y1 - y2) / ry);
+                var startAng = Math.acos(u.dot(v) / u.length() / v.length());
+                if (u.x * v.y - u.y * v.x < 0)
+                  startAng = -startAng;
+                
+                // we can reuse 'v' from start angle as our 'u' for delta angle
+                u.x = (-x1 - x2) / rx;
+                u.y = (-y1 - y2) / ry;
+                
+                var deltaAng = Math.acos(v.dot(u) / v.length() / u.length());
+                // This normalization ends up making our curves fail to triangulate...
+                if (v.x * u.y - v.y * u.x < 0)
+                  deltaAng = -deltaAng;
+                if (!sf && deltaAng > 0)
+                  deltaAng -= Math.PI * 2;
+                if (sf && deltaAng < 0)
+                  deltaAng += Math.PI * 2;
+                
+                path.absarc(cx, cy, rx, startAng, startAng + deltaAng, sf);
+                x = nx;
+                y = ny;
+                break;
+              default:
+                throw new Error("weird path command: " + activeCmd);
+            }
+            if (firstX === null) {
+              firstX = x;
+              firstY = y;
+            }
+            // just reissue the command
+            if (canRepeat && nextIsNum())
+              continue;
+            activeCmd = pathStr[idx++];
+          }
+          
+          return path;
+        },
+        /**
+         * Draw the text to the 3D viewer based on the user settings
+         * in the widget.
+         */
+        drawText: function(callback) {
+            console.log("doing drawText");
+            
+            var that = this;
+            
+            //var txt = "313-554-7502";
+            var txt = this.options.text;
+            var settings = {
+                size: this.options.height,
+                fontName: this.options.fontName,
+                fontWeight:  this.options.fontWeight, //"regular", //"bold",
+                holes: this.options.holes, //true, // don't generate hole paths cuz they'll get cut pointlessly
+                align: this.options.align, // "center", // left or center
+                dashed: this.options.cut == "dashed" ? true : false,
+                dashPercent: this.options.dashPercent,
+            };
+            
+            this.createText(txt, settings, function(txt3d) {
+                console.log("text is created. txt3d:", txt3d);
+                txt3d.userData["text"] = txt;
+                txt3d.userData["settings"] = settings;
+                that.mySceneGroup = txt3d;
+                that.sceneReAddMySceneGroup();
+                //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
+                if (callback) callback();
+            })
+        },
+        /**
+         * Create text in Three.js.<br>
+         * Params: createText(text, options)<br>
+         *   text - The text you want to render<br>
+         *   options - a set of options to tweak the rendering<br><pre>
+         *      {
+         *        fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
+         *        fontWeight: String. regular, bold
+                  size: Float. Size of the text.
+                  align: String. "left", "center"
+                  holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
+                  dashed: Boolean. If true then every other line is rendered in wireframe, rather than solid lines.
+                  curveSegments: Integer. Number of points on the curves. Default is 12.
+                }</pre>
+        **/
+        createText: function(text, options, callback) {
+            
+            // taken from http://threejs.org/examples/webgl_geometry_text.html
+            var fontMap = {
+
+				"helvetiker": 0,
+				"optimer": 1,
+				"gentilis": 2,
+				"droid/droid_sans": 3,
+				"droid/droid_serif": 4
+
+			};
+
+			var weightMap = {
+
+				"regular": 0,
+				"bold": 1
+
+			};
+            
+            // figure out defaults and overrides
+            var opts = {
+
+                font: null,
+                
+				size: options.size ? options.size : 20,
+				height: options.height ? options.height : 10,
+				curveSegments: options.curveSegments ? options.curveSegments : 4,
+
+                holes: options.holes ? true : false,
+                align: options.align ? options.align : "left",
+                dashed: options.dashed ? options.dashed : false,
+                dashPercent : options.dashPercent ? options.dashPercent : 20,
+				// bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
+				// bevelSize: options.bevelSize ? options.bevelSize : 1.5,
+				// bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
+
+                // mirror: options.mirror ? options.mirror : false,
+                
+				//material: 0,
+				//extrudeMaterial: 1
+
+			}
+			//console.log("opts:", opts);
+            
+            var fontOpts = {
+                fontName : options.fontName ? options.fontName : "helvetiker",
+                fontWeight : options.fontWeight ? options.fontWeight : "regular",
+            }
+            //console.log("fontOpts:", fontOpts);
+            
+            this.loadFont(fontOpts, function(font) {
+                    
+                // we have our font loaded, now we can render
+                opts.font = font;
+                
+                var group = new THREE.Group();
+    			//group.position.y = 100;
+                
+                //console.log("final opts to render text with:", opts);
+    			//var textGeo = new THREE.TextGeometry( text, opts );
+    			
+    			//var font = opts.font;
+
+            	if ( font instanceof THREE.Font === false ) {
+            
+            		console.error( 'THREE.TextGeometry: font parameter is not an instance of THREE.Font.' );
+            		//return new THREE.Geometry();
+                    return;
+            	}
+            
+            	var shapes = font.generateShapes( text, opts.size, opts.curveSegments );
+                //console.log("shapes:", shapes);
+                //var textGeo = new THREE.ShapeGeometry( shapes );
+                //console.log("textGeo:", textGeo);
+                
+                var material = new THREE.LineBasicMaterial({
+                	color: 0x0000ff
+                });
+
+                var textGroup = new THREE.Group();
+                
+                // if the user chose dashed, how big should the dashes
+                // be cuz we sample the shape at that percent to create
+                // a point
+				var percentOfFontHeight = opts.dashPercent;
+
+                // loop thru each shape and generate a line object
+                for (var i in shapes) {
+                    
+                    var shape = shapes[i];
+                    //console.log("shape:", shape, "length:", shape.getLength());
+                    
+                    var charGroup = new THREE.Group();
+                    
+                    // lines
+    				shape.autoClose = true;
+    				var points = shape.createPointsGeometry();
+    				//console.log("points:", points);
+    				
+    				if (opts.dashed) {
+    				    
+    				    // figure out how many points to generate
+    				    var ptCnt = shape.getLength() / (opts.size / percentOfFontHeight);
+    				    //console.log("ptCnt:", ptCnt);
+    				    shape.autoClose = false;
+    				    var spacedPoints = shape.createSpacedPointsGeometry( ptCnt );
+    				    //console.log("spacedPoints", spacedPoints);
+    				    
+    				    // we need to generate a ton of lines
+    				    // rather than one ongoing line
+    				    var isFirst = true;
+    				    var mypointsGeo = new THREE.Geometry();
+    				        
+    				    for (var iv in spacedPoints.vertices) {
+    				        var pt = spacedPoints.vertices[iv];
+    				        //console.log("pt:", pt, "isFirst:", isFirst, "mypointsGeo:", mypointsGeo);
+    				        
+    				        if (isFirst) {
+    				            // first point, start the line
+    				            mypointsGeo = new THREE.Geometry(); // reset array to empty
+    				            mypointsGeo.vertices[0] = pt;
+        				        isFirst = false;
+    				        } else {
+    				            // is second point, finish the line
+    				            mypointsGeo.vertices[1] = pt;
+    				            var line = new THREE.Line( mypointsGeo, material );
+    				            charGroup.add( line );
+    				            isFirst = true;
+    				        }
+    				        //console.log("working on point:", pt);
+    				    }
+    				    //charGroup.add( line );
+    				    
+    				    var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: opts.size / 10 } ) );
+    				    particles.position.z = 1;
+    				    //charGroup.add(particles);
+    				    
+    				} else {
+        				// solid line
+        				var line = new THREE.Line( points, material );
+        				charGroup.add( line );
+    				}
+    				charGroup.userData["character"] = text[i];
+    				charGroup.userData["characterIndex"] = i;
+    				charGroup.userData["fromText"] = text;
+    				
+    				
+    				// see if there are holes
+    				if (opts.holes) {
+        				for (var i2 in shape.holes) {
+        				    var shape = shape.holes[i2];
+        				    shape.autoClose = true;
+            				var points = shape.createPointsGeometry();
+            				
+            				if (opts.dashed) {
+            				    // we need to generate a ton of lines
+            				    // rather than one ongoing line
+            				    //console.log("not implemented dashed holes yet");
+            				    
+            				    var ptCnt = shape.getLength() / (opts.size / percentOfFontHeight);
+            				    //console.log("ptCnt:", ptCnt);
+            				    shape.autoClose = false;
+            				    var spacedPoints = shape.createSpacedPointsGeometry( ptCnt );
+            				    //console.log("spacedPoints", spacedPoints);
+            				    
+            				    // we need to generate a ton of lines
+            				    // rather than one ongoing line
+            				    var isFirst = true;
+            				    var mypointsGeo = new THREE.Geometry();
+            				        
+            				    for (var iv in spacedPoints.vertices) {
+            				        var pt = spacedPoints.vertices[iv];
+            				        //console.log("pt:", pt, "isFirst:", isFirst, "mypointsGeo:", mypointsGeo);
+            				        
+            				        if (isFirst) {
+            				            // first point, start the line
+            				            mypointsGeo = new THREE.Geometry(); // reset array to empty
+            				            mypointsGeo.vertices[0] = pt;
+                				        isFirst = false;
+            				        } else {
+            				            // is second point, finish the line
+            				            mypointsGeo.vertices[1] = pt;
+            				            var line = new THREE.Line( mypointsGeo, material );
+            				            charGroup.add( line );
+            				            isFirst = true;
+            				        }
+            				        //console.log("working on point:", pt);
+            				    }
+            				    
+            				    var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: opts.size / 10 } ) );
+            				    particles.position.z = 1;
+            				    //charGroup.add(particles);
+            				    
+            				} else {
+            				    // solid line
+            				    var line = new THREE.Line( points, material );
+                				line.userData["isHole"] = true;
+            				    charGroup.add( line );
+            				}
+
+        				    //console.log("got hole. generating line.")
+        				}
+    				}
+
+                    //console.log("charGroup:", charGroup);
+    				
+    				textGroup.add( charGroup );
+                    
+                }
+				
+				if (opts.align == "center") {
+    				var bbox = new THREE.Box3().setFromObject(textGroup);
+    				
+        			var centerOffset = -0.5 * ( bbox.max.x - bbox.min.x );
+        
+                    // y position of text
+                    var hover = 0;
+                    
+        			textGroup.position.x = centerOffset;
+        			textGroup.position.y = hover;
+        			textGroup.position.z = 0;
+				} else if (opts.align == "right") {
+				    var bbox = new THREE.Box3().setFromObject(textGroup);
+    				
+        			var rightOffset = -1 * ( bbox.max.x - bbox.min.x );
+        
+                    // y position of text
+                    var hover = 0;
+                    
+        			textGroup.position.x = rightOffset;
+        			textGroup.position.y = hover;
+        			textGroup.position.z = 0;
+				}
+				
+    			textGroup.rotation.x = 0;
+    			textGroup.rotation.y = Math.PI * 2;
+                
+				//console.log("textGroup:", textGroup);
+
+    			group.add( textGroup );
+    
+    			// call the user's callback with our final three.js object
+    			callback(group);
+
+                    
+            });
+
+		},
+		fontLoaded: {},
+		loadFont: function(fontOpts, callback) {
+
+            //console.log("THREE:", THREE);
+			var loader = new THREE.FontLoader();
+			// threejs.org/examples/fonts/helvetiker_bold.typeface.js
+			// https://i2dcui.appspot.com/js/three/fonts/
+			var url = '' +
+			    //'https://i2dcui.appspot.com/js/three/fonts/' + 
+			    'https://i2dcui.appspot.com/slingshot?url=http://threejs.org/examples/fonts/' +
+			    fontOpts.fontName + '_' + 
+			    fontOpts.fontWeight + '.typeface.js';
+
+            // see if font is loaded already
+            if (url in this.fontLoaded) {
+                //console.warn("font already loaded. url:", url);
+                callback(this.fontLoaded[url]);
+            } else {
+				var that = this;
+
+    			console.log("about to get font url:", url);
+    			loader.load( url, function ( response ) {
+    				var font = response;
+    				//console.log("loaded font:", font);
+    				that.fontLoaded[url] = font;
+    				callback(font);
+    				//refreshText();
+    			});
+            }
+		},
+		
+        onInit3dSuccess: function () {
+            console.log("onInit3dSuccess. That means we finally got an object back.");
+            this.clear3dViewer();
+            
+            // open the last file
+            //var that = this;
+            //setTimeout(function () {
+                //that.open();
+            //}, 1000);
+            //this.drawtexterator();
+            //this.drawText();
+            this.onRender();
+        },
+        obj3d: null, // gets the 3dviewer obj stored in here on callback
+        obj3dmeta: null, // gets metadata for 3dviewer
+        userCallbackForGet3dObj: null,
+        get3dObj: function (callback) {
+            this.userCallbackForGet3dObj = callback;
+            chilipeppr.subscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this, this.get3dObjCallback);
+            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/request3dObject", "");
+            chilipeppr.unsubscribe("/com-chilipeppr-widget-3dviewer/recv3dObject", this.get3dObjCallback);
+        },
+        get3dObjCallback: function (data, meta) {
+            console.log("got 3d obj:", data, meta);
+            this.obj3d = data;
+            this.obj3dmeta = meta;
+            if (this.userCallbackForGet3dObj) {
+                //setTimeout(this.userCallbackForGet3dObj.bind(this), 200);
+                //console.log("going to call callback after getting back the new 3dobj. this.userCallbackForGet3dObj:", this.userCallbackForGet3dObj);
+                this.userCallbackForGet3dObj();
+                this.userCallbackForGet3dObj = null;
+            }
+        },
+        is3dViewerReady: false,
+        clear3dViewer: function () {
+            console.log("clearing 3d viewer");
+            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneclear");
+            //if (this.obj3d) this.obj3d.children = [];            
+            /*
+            this.obj3d.children.forEach(function(obj3d) {
+                chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneremove", obj3d);
+            });
+            */
+            this.is3dViewerReady = true;
+            
+            // this should reset the 3d viewer to resize to high dpi displays
+            $(window).trigger("resize");
+        },
+        mySceneGroup: null,
+        sceneReAddMySceneGroup: function() {
+            if (this.obj3d && this.mySceneGroup) {
+                this.obj3d.add(this.mySceneGroup);
+            }
+            this.obj3dmeta.widget.wakeAnimate();
+        },
+        sceneRemoveMySceneGroup: function() {
+            if (this.obj3d && this.mySceneGroup) {
+                this.obj3d.remove(this.mySceneGroup);
+                
+            }
+            this.obj3dmeta.widget.wakeAnimate();
+        },
+        sceneDisposeMySceneGroup: function() {
+            if (this.mySceneGroup) {
+                this.mySceneGroup.traverse( function ( child ) {
+                    if (child.geometry !== undefined) {
+                        child.geometry.dispose();
+                        child.material.dispose();
+                    }
+                } );    
+            }
         },
         /**
          * onHelloBtnClick is an example of a button click event callback
@@ -960,7 +1254,7 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
 </head>
 
 <body>
-    <div id="com-zipwhip-widget-font2gcode" class="panel panel-default">
+    <div id="com-zipwhip-widget-svg2gcode" class="panel panel-default">
         <div class="panel-heading ">
 
             <div class="btn-toolbar pull-right" role="toolbar">
@@ -979,40 +1273,191 @@ cpdefine("inline:com-zipwhip-widget-font2gcode", ["chilipeppr_ready", /* other d
                         <ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
                     </div>
                 </div>
-            </div> <span class="panel-title" data-toggle="popover">Font2Gcode</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
+            </div> <span class="panel-title" data-toggle="popover">SVG To Gcode</span> <span style="font-size:9px;" class="fb-build hidden">v1</span>
 
         </div>
         <div class="panel-body">
-        
-            <form class="form-inline">
-                <div class="form-group">
-                    <div class="input-group">
-                        <input type="text" class="form-control" xstyle="margin-bottom:5px;" placeholder="Enter text to render" />
-                        <div class="input-group-addon" style="padding:0;">
-                            <button type="button" xstyle="border-radius:0; border:0;" class="btn btn-default btn-laserit">Render</button>
+
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="active"><a href="#com-zipwhip-widget-svg2gcode-tab1" role="tab" data-toggle="tab">Render</a>
+                </li>
+                <li><a href="#com-zipwhip-widget-svg2gcode-tab2" role="tab" data-toggle="tab">Gcode</a></li>
+                <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab3" role="tab" data-toggle="tab">Dispenser</a></li>-->
+                <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab4" role="tab" data-toggle="tab">Laser</a></li>-->
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+
+                <!-- Tab 1 -->
+                <div class="tab-pane active" id="com-zipwhip-widget-svg2gcode-tab1">
+
+                    <p style="margin-top:0px;">Paste SVG Code Here</p>
+                    <textarea class="form-control input-svg" rows="3">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="115.13943"
+   height="110.96252"
+   viewBox="0 0 115.13943 110.96252"
+   enable-background="new 0 0 120 120.667"
+   xml:space="preserve"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Zipwhip-logo-inkscape.svg"><metadata
+     id="metadata3405"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+     id="defs3403"><defs
+       id="defs3339"><rect
+         height="120.667"
+         width="120"
+         id="SVGID_1_"
+         x="0"
+         y="0" /></defs><clipPath
+       id="SVGID_2_"><use
+         id="use3343"
+         overflow="visible"
+         xlink:href="#SVGID_1_"
+         style="overflow:visible"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" /></clipPath><defs
+       id="defs3347"><rect
+         id="SVGID_3_"
+         width="120"
+         height="120.667"
+         x="0"
+         y="0" /></defs><clipPath
+       id="SVGID_4_"><use
+         xlink:href="#SVGID_3_"
+         overflow="visible"
+         id="use3351"
+         style="overflow:visible"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" /></clipPath></defs><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1500"
+     inkscape:window-height="937"
+     id="namedview3401"
+     showgrid="false"
+     inkscape:zoom="6.1160052"
+     inkscape:cx="33.997879"
+     inkscape:cy="56.020527"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" /><path
+     clip-path="url(#SVGID_4_)"
+     d="m 99.934,5.228 -36.055,0 0,0.013 C 59.822,5.234 54.925,5.228 49.569,5.228 c -14.28,0 -23.055,10.153 -25.989,22.047 -2.109,8.587 -2.921,12.613 -12.207,48.44 -0.024,0.116 -0.061,0.251 -0.091,0.353 -0.038,0.161 -0.058,0.311 -0.083,0.464 l -8.86,34.318 c 0,0 -2.112,10.254 10.895,2.345 6.368,-3.875 16.397,-9.952 24.526,-14.867 l 26.063,0 0,-0.003 c 4.036,0.003 8.95,0.003 14.306,0.003 14.31,0 23.085,-10.173 26.014,-22.099 0.041,-0.169 6.73,-26.784 12.318,-48.954 C 119.789,13.093 113.682,5.228 99.934,5.228 m -2.663,25.607 c -0.33,4.255 -1.875,6.33 -4.258,8.471 l -35.122,27.456 28.4,0 -4.627,17.23 c -13.958,0 -35.176,0.003 -40.442,0.003 -6.502,0 -11.373,-5.307 -10.872,-11.809 0.293,-3.798 1.459,-5.835 3.404,-7.626 l 36.888,-28.77 -29.02,0 4.378,-16.56 40.38,0 c 6.503,0 11.392,5.111 10.891,11.605"
+     id="path3375"
+     inkscape:connector-curvature="0"
+     style="fill:#f37243"
+     transform="translate(-2.2120827,-5.228)" /></svg>
+                    </textarea>
+
+                    <p style="padding-top:10px;">Settings</p>
+
+                    <div class="form-group" xstyle="padding-left:18px;">
+                        <span xstyle="font-size:11px;">Points To Generate Per Path</span>
+                        <div class="input-group">
+                            <input type="number" min="0" max="10000" step="10" class="form-control input-pointsperpath" value="50" placeholder="Enter points">
+                            <div class="input-group-addon">points</div>
                         </div>
                     </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input class="input-holes" type="checkbox" value="1" checked> Generate holes
+                            <p style="font-size:10px;">For example, the path at the center of a 0</p>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-cut" value="solid"> Solid Cut
+                        </label>
+                        <br>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-cut" value="dashed" checked> Dashed Cut
+                        </label>
+                        <div class="form-group" style="padding-left:18px;">
+                            <span style="font-size:11px;">Point Spacing</span>
+                            <div class="input-group">
+                                <input type="number" min="1" max="99" step="1" class="form-control input-dashPercent" value="20" placeholder="Height">
+                                <div class="input-group-addon">% of Height</div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-            </form>
-        
-            <div class="input-group">
-              <div class="input-group-addon">Height</div>
-              <input type="text" class="form-control" value="10" placeholder="Height">
-              <div class="input-group-addon">mm</div>
-            </div>
-            
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" value="1" checked>
-                Generate holes, i.e. like center of a 0
-              </label>
-            </div>
-                
-            <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
 
-            <p style="margin-top:10px;">Gcode</p>
-            <textarea class="form-control" rows="3"></textarea>
+                <!-- Tab 2 -->
+                <div class="tab-pane" id="com-zipwhip-widget-svg2gcode-tab2">
 
+                    <div class="form-group">
+                        <p style="margin-bottom:0">Mode</p>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-mode" value="laser" checked> Laser
+                        </label>
+                        <div class="form-group mode-laser" style="padding-left:20px;margin-bottom:0">
+                            <p style="margin-bottom:0;font-size:11px;">Turn Laser On With</p>
+                            <label class="radio-inline">
+                                <input type="radio" name="com-chilipeppr-widget-svg2gcode-laseron" value="M3" checked> M3 (Spindle)
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="com-chilipeppr-widget-svg2gcode-laseron" value="M7"> M7 (Coolant)
+                            </label>
+                        </div>
+                        <label class="radio-inline">
+                            <input type="radio" name="com-chilipeppr-widget-svg2gcode-mode" value="mill"> Mill
+                        </label>
+                    </div>
+
+                    <div class="form-group" xstyle="padding-left:18px;">
+                        <span xstyle="font-size:11px;">Feedrate During Mill/Laser</span>
+                        <div class="input-group">
+                            <input type="number" min="0" max="50000" step="10" class="form-control input-feedrate" value="200" placeholder="Enter feedrate">
+                            <div class="input-group-addon">mm/min</div>
+                        </div>
+                    </div>
+
+
+                    <button type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>
+
+                    <p style="margin-top:10px;">Gcode</p>
+                    <textarea class="form-control gcode" rows="3"></textarea>
+
+                </div>
+                <!-- End Tab 2 -->
+            </div>
         </div>
     </div>
 </body>

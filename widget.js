@@ -300,6 +300,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // read in the svg text and draw it as three.js object in the 3d viewer
             this.drawSvg();
             
+            //that.generateGcode();
             
             //this.extractSvgPathsFromSVGFile(this.options.svg);
             
@@ -344,16 +345,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             g += "G21 (mm)\n";
             
             // get the THREE.Group() that is the txt3d
-            var grp = this.mySceneGroup;
-            var txtGrp = this.mySceneGroup.children[0];
+            var grp = this.svgGroup;
+            var txtGrp = this.svgGroup;
 
             var that = this;
-            grp.traverse( function(child) {
+            var isLaserOn = false;
+            var isFeedrateSpecifiedAlready = false;
+            txtGrp.traverse( function(child) {
                 if (child.type == "Line") {
                     // let's create gcode for all points in line
                     for (var i in child.geometry.vertices) {
                         var localPt = child.geometry.vertices[i];
-                        var worldPt = grp.localToWorld(localPt);
+                        var worldPt = grp.localToWorld(localPt.clone());
                         if (i == 0) {
                             // first point in line where we start lasering
                             // move to poing
@@ -363,14 +366,29 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                             //g += "F" + that.options.feedrate + "\n";
                         }
                         else {
-                            g += that.options.laseron + " (laser on)\n";
-                            g += "G1 F" + that.options.feedrate + 
+                            if (!isLaserOn) {
+                                g += that.options.laseron + " (laser on)\n";
+                                isLaserOn = true;
+                            }
+                            var feedrate;
+                            if (isFeedrateSpecifiedAlready) {
+                                feedrate = "";
+                            } else {
+                                feedrate = " F" + that.options.feedrate;
+                                isFeedrateSpecifiedAlready = true;
+                            }
+                            g += "G1" + feedrate + 
                                 " X" + worldPt.x.toFixed(3) + 
                                 " Y" + worldPt.y.toFixed(3) + "\n";
                         }
                     }
                     
+                    // make feedrate have to get specified again on next line
+                    // if there is one
+                    isFeedrateSpecifiedAlready = false;
+                    
                     // turn off laser at end of line
+                    isLaserOn = false;
                     if (that.options.laseron == "M3")
                         g += "M6 (laser off)\n";
                     else
@@ -378,15 +396,21 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 }
             });
             
-            
-            
-            console.log("gcode:", g);
+            console.log("generated gcode. length:", g.length);
+            //console.log("gcode:", g);
             $('#' + this.id + " .gcode").val(g);
         },
         /**
-         * Contains the SVG rendered Three.js group
+         * Contains the SVG rendered Three.js group with everything in it including
+         * the textbox handles and the marquee. So this is not the Three.js object
+         * that only contains the SVG that was rendered. Use svgGroup for that which
+         * is a child.
          */
         svgParentGroup: null,
+        /**
+         * Contains the actual rendered SVG file. This is where the action is.
+         */
+        svgGroup: null,
         /**
          * Contains the particle we map the width textbox 3d to 2d screen projection.
          */
@@ -395,6 +419,10 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * Contains the particle we map the height textbox 3d to 2d screen projection.
          */
         heightParticle: null,
+        /**
+         * Contains the particle we map the lower/left corner of marquee.
+         */
+        alignBoxParticle: null,
         drawSvg: function() {
             
             // see if file is valid
@@ -412,8 +440,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
     
                 // make sure camera change triggers
-                setTimeout(this.onCameraChange.bind(this), 50);
-
+                //setTimeout(this.onCameraChange.bind(this), 50);
+                this.onCameraChange.bind(this);
             }
         },
         extractSvgPathsFromSVGFile: function(file) {
@@ -594,11 +622,19 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             heightGeo.vertices.push(heightPt);
             var heightParticle = new THREE.Points( heightGeo, new THREE.PointsMaterial( { color: 0x00ff00, size: 5 } ) );
 		    svgParentGroup.add(heightParticle);
+
+            var alignBoxPt = new THREE.Vector3(bbox.box.min.x, bbox.box.min.y, 0);
+            var alignBoxGeo = new THREE.Geometry();
+            alignBoxGeo.vertices.push(alignBoxPt);
+            var alignBoxParticle = new THREE.Points( alignBoxGeo, new THREE.PointsMaterial( { color: 0xffff00, size: 5 } ) );
+		    svgParentGroup.add(alignBoxParticle);
 		    
 		    this.widthParticle = widthParticle;
 		    this.heightParticle = heightParticle;
+		    this.alignBoxParticle = alignBoxParticle;
 		    
             this.svgParentGroup = svgParentGroup;
+            this.svgGroup = svgGroup;
             
 		    // now create our floating menus
 		    this.createWidthHeightFloatMenus();
@@ -635,11 +671,17 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // move them and
                 // setup the onchange events
                 $('#' + this.id + "-widthbox")
-                    .detach().appendTo( "body" )
-                    .change(this.onWidthChange.bind(this));
+                    //.detach().appendTo( "body" )
+                    .change(this.onWidthChange.bind(this))
+                    .removeClass("hidden");
                 $('#' + this.id + "-heightbox")
-                    .detach().appendTo( "body" );
+                    .change(this.onHeightChange.bind(this))
+                    .removeClass("hidden");
+                    //.detach().appendTo( "body" );
                     // TODO add onchange
+                $('#' + this.id + "-alignbox")
+                    .removeClass("hidden");
+                    // .detach().appendTo( "body" );
                 this.isWidthHeightBoxesMovedToTopOfDom = true;
                 
                 // if window resizes, reset the camera and textboxes
@@ -649,6 +691,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 $('#' + this.id + "-widthbox .btn-aspect").click(this.onAspectLockedBtnClick.bind(this));
                 $('#' + this.id + "-heightbox .btn-aspect").click(this.onAspectLockedBtnClick.bind(this));
 
+                // setup align buttons
+                $('#' + this.id + "-alignbox button").click(this.onAlignButtonClicked.bind(this));
                 
             } else {
                 console.warn("divs already positioned");
@@ -664,27 +708,68 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + "-heightbox .input-heightbox").val(bbox.height.toFixed(3));
             
             // we now need to reposition our textboxes as if the camera was moved
-            setTimeout(this.onCameraChange.bind(this), 50);
+            //setTimeout(this.onCameraChange.bind(this), 50);
+            this.onCameraChange.bind(this);
             
+        },
+        onAlignButtonClicked: function(evt) {
+            var tEl = $(evt.currentTarget);
+            console.log("align btn clicked. evt:", evt, tEl);
             
+            var bbox = new THREE.Box3().setFromObject(this.svgGroup);
+            console.log("bbox:", bbox);
+            
+            if (tEl.hasClass("btn-vert-left")) {
+                // align vertical left of center
+                console.log("vert align left");
+                this.svgParentGroup.position.x = -1 * (bbox.max.x - bbox.min.x);
+            }
+            else if (tEl.hasClass("btn-vert-center")) {
+                console.log("vert align center");
+                this.svgParentGroup.position.x = -1 * (bbox.max.x - bbox.min.x) / 2;
+            }
+            else if (tEl.hasClass("btn-vert-right")) {
+                console.log("vert align right");
+                this.svgParentGroup.position.x = 0; //(bbox.max.x - bbox.min.x) / 2;
+            }
+            else if (tEl.hasClass("btn-horiz-top")) {
+                console.log("horiz align top");
+                this.svgParentGroup.position.y = 0;
+            }
+            else if (tEl.hasClass("btn-horiz-middle")) {
+                console.log("horiz align middle");
+                this.svgParentGroup.position.y = -1 * (bbox.max.y - bbox.min.y) / 2;
+            }
+            else if (tEl.hasClass("btn-horiz-bottom")) {
+                console.log("horiz align bottom");
+                this.svgParentGroup.position.y = -1 * (bbox.max.y - bbox.min.y); 
+            }
+    
+            $('#' + this.id + "-alignbox .input-x").val(this.svgParentGroup.position.x);
+            $('#' + this.id + "-alignbox .input-y").val(this.svgParentGroup.position.y);
+    
+            //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
+            this.obj3dmeta.widget.wakeAnimate();
+            this.onCameraChange.bind(this);
         },
         isAspectLocked: true,
         onAspectLockedBtnClick: function(evt) {
             console.log("aspect btn clicked");
             console.log("svg:", $('.' + this.id + "-textbox .svg-unlocked"));
             if (this.isAspectLocked) {
-                $('.' + this.id + "-textbox .aspect-txt").text("Aspect Unlocked");
+                // $('.' + this.id + "-textbox .aspect-txt").text("Aspect Unlocked");
                 $('.' + this.id + "-textbox .svg-unlocked").each(function() { this.classList.remove("hidden");});
                 $('.' + this.id + "-textbox .glyphicon-lock").addClass("hidden");
                 
                 this.isAspectLocked = false;
             } else {
-                $('.' + this.id + "-textbox .aspect-txt").text("Aspect Locked");
+                // $('.' + this.id + "-textbox .aspect-txt").text("Aspect Locked");
                 $('.' + this.id + "-textbox .svg-unlocked").each(function() { this.classList.add("hidden");});
                 $('.' + this.id + "-textbox .glyphicon-lock").removeClass("hidden");
                 this.isAspectLocked = true;
             }
         },
+        //widthHeightChangeTimeoutPtr: null,
         onWidthChange: function(evt) {
             console.log("onWidthChange. evt:", evt);
             // get new width
@@ -703,11 +788,49 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
 
             // since the three.js objects were resized here
             // we need to reposition everything in the viewer
-            setTimeout(this.onCameraChange.bind(this), 50);
+            // if (this.widthHeightChangeTimeoutPtr) {
+                //console.log("cleared last timeout cuz don't need");
+                // clearTimeout(this.widthHeightChangeTimeoutPtr);
+            // }
+            //this.widthHeightChangeTimeoutPtr = setTimeout(this.onCameraChange.bind(this), 100);
+            this.onCameraChange.bind(this);
 
         },
-        onCameraChange: function(evt) {
-            // console.log("got onCameraChange. evt:", evt);
+        onHeightChange: function(evt) {
+            console.log("onHeightChange. evt:", evt);
+            
+            // TODO 
+        },
+        generateGcodeTimeoutPtr: null,
+        cameraChangeTimeoutPtr: null,
+        isCameraChangeTimeoutExist: false,
+        /**
+         * Call this method when the camera changes, or the user changed settings,
+         * or you want to re-generate the Gcode. This method is smart that where it
+         * allows you to call it very quickly over and over, like on mousedrag, but
+         * it only updates every 100ms and cancels further calls in between updates.
+         * The last call always executes though so you have a perfectly updated
+         * 3D view.
+         */
+        onCameraChange: function() {
+            if (this.isCameraChangeTimeoutExist) { //this.cameraChangeTimeoutPtr) {
+                //console.log("clearing last setTimeout for cameraChangeTimeoutPtr cuz don't need anymore");
+                clearTimeout(this.cameraChangeTimeoutPtr);
+                //this.isCameraChangeTimeoutExist = false;
+            }
+            this.isCameraChangeTimeoutExist = true;
+            this.cameraChangeTimeoutPtr = setTimeout(this.onCameraChangeCallback.bind(this), 30);
+  
+        },
+        /**
+         * The method that gets called 50ms later after onCameraChange() is called.
+         */
+        onCameraChangeCallback: function(evt) {
+            
+            // let other calls now come in since i'm executing
+            this.isCameraChangeTimeoutExist = false;
+            
+            //console.log("got onCameraChange callback. evt:", evt);
             
             // position the textboxes
             // console.log("this.widthParticle:", this.widthParticle);
@@ -721,14 +844,29 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     this.heightParticle.geometry.vertices[0].clone()
                 )
             );
+            var ptAlignBox = this.toScreenPosition(
+                this.svgParentGroup.localToWorld(
+                    this.alignBoxParticle.geometry.vertices[0].clone()
+                )
+            );
             // console.log("ptWidth:", ptWidth, "ptHeight:", ptHeight);
             $('#' + this.id + "-widthbox")
                 .css('left', ptWidth.x + "px")
-                .css('top', ptWidth.y + "px")
+                .css('top', ptWidth.y + "px");
             $('#' + this.id + "-heightbox")
                 .css('left', ptHeight.x + "px")
-                .css('top', ptHeight.y + "px")
-
+                .css('top', ptHeight.y + "px");
+            $('#' + this.id + "-alignbox")
+                .css('left', ptAlignBox.x + "px")
+                .css('top', ptAlignBox.y + "px");
+                
+            // this may be an odd place to trigger gcode change, but this method
+            // is called on all scaling changes, so do it here for now
+            if (this.generateGcodeTimeoutPtr) {
+                //console.log("clearing last setTimeout for generating gcode cuz don't need anymore");
+                clearTimeout(this.generateGcodeTimeoutPtr);
+            }
+            this.generateGcodeTimeoutPtr = setTimeout(this.generateGcode.bind(this), 1000);
         },
         toScreenPosition: function(pt) {
             var vector = pt.clone(); //new THREE.Vector3();
@@ -770,26 +908,6 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             vector.x = ( vector.x * widthHalf ) + widthHalf;
             vector.y = - ( vector.y * heightHalf ) + heightHalf;  
-        },
-        toScreenPositionOld: function(obj, camera) {
-            var vector = new THREE.Vector3();
-            
-            // TODO: need to update this when resize window
-            var widthHalf = 0.5 * this.obj3dmeta.widget.renderer.context.canvas.width;
-            var heightHalf = 0.5 * this.obj3dmeta.widget.renderer.context.canvas.height;
-            
-            obj.updateMatrixWorld();
-            vector.setFromMatrixPosition(obj.matrixWorld);
-            vector.project(camera);
-            
-            vector.x = ( vector.x * widthHalf ) + widthHalf;
-            vector.y = - ( vector.y * heightHalf ) + heightHalf;
-            
-            return { 
-                x: vector.x,
-                y: vector.y
-            };
-        
         },
         /**
          * Create a Three.js Mesh from a Three.js shape.

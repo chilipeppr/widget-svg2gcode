@@ -216,6 +216,8 @@
                     </div>
 
                     <p style="padding-top:10px;">Settings</p>
+                    
+                    
 
                     <!--<div class="form-group" xstyle="padding-left:18px;">-->
                     <!--    <span xstyle="font-size:11px;">Points To Generate Per Path</span>-->
@@ -232,7 +234,7 @@
                     <!--    </label>-->
                     <!--</div>-->
 
-                    <div class="form-group" style="padding-top:0px;">
+                    <div class="form-group" style="padding-top:12px;">
                         <label class="radio-inline">
                             <input type="radio" name="com-chilipeppr-widget-svg2gcode-cut" value="solid"> Solid Cut
                         </label>
@@ -295,10 +297,10 @@
     </div>
     
     <!-- Width Adjust Textbox -->
-    <div id="com-zipwhip-widget-svg2gcode-widthbox" class="form-group com-zipwhip-widget-svg2gcode-textbox div-width-box" style="position:absolute;top:400px;left:10px;width:230px;z-index:1;">
+    <div id="com-zipwhip-widget-svg2gcode-widthbox" class="hidden form-group com-zipwhip-widget-svg2gcode-textbox div-width-box" style="position:absolute;top:400px;left:10px;">
         <div class="input-group">
             <input type="number" step="1" class="form-control input-widthbox" placeholder="Width">
-            <div class="input-group-addon" style="padding:0 10px">
+            <div class="input-group-addon" xstyle="padding:0 10px">
                 <button type="button" class="btn btn-xs btn-default btn-aspect">
                 <span class="glyphicon glyphicon-lock"></span> 
                 <svg class="svg-unlocked hidden"
@@ -314,17 +316,17 @@
                        id="path4890-3" />
                   </g>
                 </svg>
-                <span class="aspect-txt width-aspect-txt" style="font-size:10px">Aspect Locked</span>
+                <span class="aspect-txt width-aspect-txt" style="font-size:10px">Aspect</span>
                 </button>
             </div>
         </div>
     </div>
     
     <!-- Height Adjust Textbox -->
-    <div id="com-zipwhip-widget-svg2gcode-heightbox" class="form-group com-zipwhip-widget-svg2gcode-textbox div-height-box" style="position:absolute;top:450px;left:10px;width:230px;z-index:1;">
+    <div id="com-zipwhip-widget-svg2gcode-heightbox" class="hidden form-group com-zipwhip-widget-svg2gcode-textbox div-height-box" style="position:absolute;top:450px;left:10px;">
         <div class="input-group">
             <input type="number" step="1" class="form-control input-heightbox" placeholder="Height">
-            <div class="input-group-addon" style="padding:0 10px">
+            <div class="input-group-addon" xstyle="padding:0 10px">
                 <button type="button" class="btn btn-xs btn-default btn-aspect">
                 <span class="glyphicon glyphicon-lock"></span> 
                 <svg class="svg-unlocked hidden"
@@ -340,12 +342,343 @@
                        id="path4890-3" />
                   </g>
                 </svg>
-                <span class="aspect-txt height-aspect-txt" style="font-size:10px">Aspect Locked</span>
+                <span class="aspect-txt height-aspect-txt" style="font-size:10px">Aspect</span>
                 </button>
             </div>
         </div>
     </div>
 
+    <div id="com-zipwhip-widget-svg2gcode-alignbox" class="hidden" style="position:absolute;top:410px;left:10px;z-index:1;">
+        
+        <div class="input-group input-group-small" style="">
+            <input type="number" step="1" class="form-control input-x" placeholder="0">
+            <div class="input-group-addon">
+                X
+            </div>
+        </div>
+        <div class="input-group input-group-small" style="margin-top:2px;">
+            <input type="number" step="1" class="form-control input-y" placeholder="0">
+            <div class="input-group-addon">
+                Y
+            </div>
+        </div>
+        
+        <!--<p style="margin-bottom:2px;">Vertical Align</p>-->
+                    
+        <div class="btn-group" style="margin-top:2px;" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-default btn-xs btn-vert-left">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="159.82771"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="163.26817"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="166.70863"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="170.14909"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 98.245253,158.35323 0,15.40015"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-default btn-xs btn-vert-center">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="159.82771"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="163.26817"
+                       y="-96.836304"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="166.70863"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="170.14909"
+                       y="-96.836304"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 92.658603,158.35323 0,15.40015"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-default btn-xs btn-vert-right">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="159.82771"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="163.26817"
+                       y="-95.19799"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="166.70863"
+                       y="-98.474617"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="170.14909"
+                       y="-95.19799"
+                       transform="matrix(0,1,-1,0,0,0)" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 87.071959,158.35323 0,15.40015"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>
+        </div>
+        
+        <!--<p style="margin-bottom:2px;">Horizontal Align</p>-->
+        
+        <div class="btn-group-vertical" role="group" aria-label="Basic example" style="position:absolute;top:0;left:84px;">
+            <button type="button" class="btn btn-default btn-xs btn-horiz-top">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="86.433014"
+                       y="160.23729" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="89.873474"
+                       y="163.51392" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="93.313934"
+                       y="160.23729" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="96.754395"
+                       y="163.51392" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 84.95853,171.63995 15.40015,0"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-default btn-xs btn-horiz-middle">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="86.433014"
+                       y="160.23729" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="89.873474"
+                       y="161.8756" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="93.313934"
+                       y="160.23729" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="96.754395"
+                       y="161.8756" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 84.95853,166.05331 15.40015,0"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-default btn-xs btn-horiz-bottom">
+                <svg
+                   width="16px"
+                   height="16px"
+                   style="margin:1px 0 -4px 0"
+                   viewBox="0 0 16 16"
+                   id="svg2"
+                   >
+                  <g
+                     inkscape:label="Layer 1"
+                     inkscape:groupmode="layer"
+                     id="layer1"
+                     transform="translate(-84.642857,-157.96934)">
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="86.433014"
+                       y="160.66425" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="89.873474"
+                       y="160.66425" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3347-0"
+                       width="2.2936394"
+                       height="11.632029"
+                       x="93.313934"
+                       y="160.66425" />
+                    <rect
+                       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       id="rect3349-7"
+                       width="2.1298079"
+                       height="8.3554001"
+                       x="96.754395"
+                       y="160.66425" />
+                    <path
+                       style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:0.4587279px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                       d="m 84.95853,160.4185 15.40015,0"
+                       id="path4205"
+                       inkscape:connector-curvature="0" />
+                  </g>
+                </svg>
+            </button>                    
+        </div>
+    </div>
 
 </body>
 

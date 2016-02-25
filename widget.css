@@ -17,3 +17,31 @@
     border-bottom-left-radius:0;
     border:0;
 }
+
+div.com-zipwhip-widget-svg2gcode-textbox {
+    width:130px;
+    z-index:1;
+}
+.com-zipwhip-widget-svg2gcode-textbox .input-group .form-control {
+    font-size:11px;
+    padding:0 0 0 8px;
+    height:26px;
+}
+.com-zipwhip-widget-svg2gcode-textbox .input-group .input-group-addon {
+    padding:0;   
+}
+
+#com-zipwhip-widget-svg2gcode-alignbox .input-group.input-group-small {
+    width:82px;
+}
+#com-zipwhip-widget-svg2gcode-alignbox .input-group.input-group-small .input-group-addon {
+    font-size:11px;
+    padding:0 6px;
+}
+
+#com-zipwhip-widget-svg2gcode-alignbox .input-group-small .form-control {
+    font-size:11px;
+    padding:0 0 0 8px;
+    margin:0;
+    height:26px;
+}

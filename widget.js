@@ -72,11 +72,12 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
             });
             
             // hide toolbar for room
-            $('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
+            //$('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
             
             // only init eagle widget once 3d is loaded
             // init my widget
             myWidget.init();
+            myWidget.activate();
         });
     });
 
@@ -1013,13 +1014,13 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // console.log("is a css height:", $(canvas).css('height'));
                 canvasHeight = parseInt($(canvas).css('height'));
             }
-            //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
+            console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
             
             //vector.set( 1, 2, 3 );
             
             // map to normalized device coordinate (NDC) space
             vector.project( this.obj3dmeta.camera );
-            // console.log("canvas:", canvas, "vector after project:", vector);
+            console.log("vector after project:", vector);
             
             // map to 2D screen space
             vector.x = Math.round( (   vector.x + 1 ) * canvasWidth  / 2 ); // / 2,

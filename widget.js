@@ -94,6 +94,20 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
         }
     );
     
+    // load drag/drop widget that the workspace usually loads
+    $('body').prepend('<div id="test-drag-drop"></div>');
+    chilipeppr.load("#test-drag-drop", "http://fiddle.jshell.net/chilipeppr/Z9F6G/show/light/",
+
+    function () {
+        cprequire(
+        ["inline:com-chilipeppr-elem-dragdrop"],
+
+        function (dd) {
+            dd.init();
+            dd.bind("body", null);
+        });
+    });
+    
     $('#' + myWidget.id).css('margin', '20px');
     $('title').html(myWidget.name);
     // $('#' + myWidget.id).css('background', 'none');
@@ -153,7 +167,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // Define a key:value pair here as strings to document what signals you subscribe to
             // that are owned by foreign/other widgets.
             // '/com-chilipeppr-elem-dragdrop/ondropped': 'Example: We subscribe to this signal at a higher priority to intercept the signal. We do not let it propagate by returning false.'
-            "/com-chilipeppr-widget-3dviewer/recv3dObject" : "By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects."
+            "/com-chilipeppr-widget-3dviewer/recv3dObject" : "By subscribing to this we get the callback when we /request3dObject and thus we can grab the reference to the 3d object from the 3d viewer and do things like addScene() to it with our Three.js objects.",
+            '/com-chilipeppr-elem-dragdrop/ondropped': 'We subscribe to this signal at a higher priority to intercept the signal, double check if it is an SVG file and if so, we do not let it propagate by returning false. That way the 3D Viewer, Gcode widget, or other widgets will not get the SVG file drag/drop events because they will not know how to interpret the SVG file.'
         },
         /**
          * All widgets should have an init method. It should be run by the
@@ -165,6 +180,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.setupUiFromLocalStorage();
 
             this.init3d();
+            
+            // May need to not subscribe during production. Not sure.
+            this.setupDragDrop();
             
             this.btnSetup();
             this.forkSetup();
@@ -235,36 +253,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 container: 'body'
             });
 
-            // Init Say Hello Button on Main Toolbar
-            // We are inlining an anonymous method as the callback here
-            // as opposed to a full callback method in the Hello Word 2
-            // example further below. Notice we have to use "that" so 
-            // that the this is set correctly inside the anonymous method
-            $('#' + this.id + ' .btn-sayhello').click(function() {
-                console.log("saying hello");
-                // Make sure popover is immediately hidden
-                $('#' + that.id + ' .btn-sayhello').popover("hide");
-                // Show a flash msg
-                chilipeppr.publish(
-                    "/com-chilipeppr-elem-flashmsg/flashmsg",
-                    "Hello Title",
-                    "Hello World from widget " + that.id,
-                    1000
-                );
-            });
-
-            // Init Hello World 2 button on Tab 1. Notice the use
-            // of the slick .bind(this) technique to correctly set "this"
-            // when the callback is called
-            $('#' + this.id + ' .btn-helloworld2').click(this.onHelloBtnClick.bind(this));
 
             // render
             $('#' + this.id + ' .btn-render').click(this.onRender.bind(this));
 
-            // on change
-            $('#' + this.id + ' input').change(this.onChange.bind(this));
-            $('#' + this.id + ' select').change(this.onChange.bind(this));
-            $('#' + this.id + ' textarea').change(this.onChange.bind(this));
+            // on change which re-reads the svg file and creates the Three.js object
+            $('#' + this.id + ' .input-svg').change(this.onChange.bind(this));
+            $('#' + this.id + ' .svg2gcode-cuttype').change(this.onChange.bind(this));
+            
+            // input that just changes gcode, but doesn't have to re-render the svg from scratch
+            $('#' + this.id + ' .svg2gcode-modetype').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .input-feedrate').change(this.generateGcode.bind(this));
+            
         },
         isChanging: false,
         onChange: function() {
@@ -334,14 +334,48 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             //this.saveOptionsLocalStorage();
         },
+        generateGcodeTimeoutPtr: null,
+        isGcodeInRegeneratingState: false,
+        /**
+         * This method will trigger a process to generateGcode however, it
+         * allows this to be called a bunch of times and it will always wait
+         * to do the generate about 1 second later and de-dupe the multiple calls.
+         */
+         generateGcode: function() {
+            // this may be an odd place to trigger gcode change, but this method
+            // is called on all scaling changes, so do it here for now
+            if (this.generateGcodeTimeoutPtr) {
+                //console.log("clearing last setTimeout for generating gcode cuz don't need anymore");
+                clearTimeout(this.generateGcodeTimeoutPtr);
+            }
+            if (!this.isGcodeInRegeneratingState) {
+                $('#' + this.id + " .gcode").prop('disabled', true);
+                $('#' + this.id + " .btn-sendgcodetows").prop('disabled', true);
+                
+                $('#' + this.id + " .regenerate").removeClass('hidden');
+                $('#' + this.id + " .gcode-size-span").addClass('hidden');
+                // set this to true so next time we are called fast we know we don't have
+                // to set the UI elements again. they'll get set back and this flag after
+                // the gcode is generated
+                this.isGcodeInRegeneratingState = true;
+
+            } else {
+                // do nothing
+                //console.log("already indicated in UI we have to regenerate");
+            }
+            this.generateGcodeTimeoutPtr = setTimeout(this.generateGcodeCallback.bind(this), 1000);
+         },
         /**
          * Iterate over the text3d that was generated and create
          * Gcode to mill/cut the three.js object.
          */
-        generateGcode: function() {
+        generateGcodeCallback: function() {
             
-            var g = "(Gcode generated by ChiliPeppr svg2gcode Widget)\n";
-            g += "(Text: " + this.mySceneGroup.userData.text  + ")\n";
+            // get settings
+            this.getSettings();
+            
+            var g = "(Gcode generated by ChiliPeppr Svg2Gcode Widget)\n";
+            //g += "(Text: " + this.mySceneGroup.userData.text  + ")\n";
             g += "G21 (mm)\n";
             
             // get the THREE.Group() that is the txt3d
@@ -398,7 +432,14 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             console.log("generated gcode. length:", g.length);
             //console.log("gcode:", g);
-            $('#' + this.id + " .gcode").val(g);
+            $('#' + this.id + " .gcode").val(g).prop('disabled', false);
+            $('#' + this.id + " .btn-sendgcodetows").prop('disabled', false);
+            $('#' + this.id + " .regenerate").addClass('hidden');
+            $('#' + this.id + " .gcode-size-span").removeClass('hidden');
+            $('#' + this.id + " .gcode-size").text(parseInt(g.length / 1024) + "KB");
+
+            this.isGcodeInRegeneratingState = false;
+
         },
         /**
          * Contains the SVG rendered Three.js group with everything in it including
@@ -441,7 +482,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
     
                 // make sure camera change triggers
                 //setTimeout(this.onCameraChange.bind(this), 50);
-                this.onCameraChange.bind(this);
+                this.onCameraChange(); //.bind(this);
+                
+                this.generateGcode();
             }
         },
         extractSvgPathsFromSVGFile: function(file) {
@@ -482,6 +525,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             var svgGroup = new THREE.Group();
             
             var that = this;
+            
+            var opts = that.options;
+            console.log("opts:", opts);
             
             var pathSet = fragment.selectAll("path");
             
@@ -548,7 +594,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 var material = new THREE.LineBasicMaterial({
                     	color: 0x0000ff
                     });
-                    
+                
+                
                 // use transformSVGPath
                 console.log("working on path:", path);
                 //debugger;
@@ -560,18 +607,62 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     
                     shape.autoClose = true;
                     console.log("shape:", shape);
-                    var geometry = new THREE.ShapeGeometry( shape );
-                    var lineSvg = new THREE.Line( geometry, material );
-        			svgGroup.add(lineSvg);
-        			
-        			var particles = new THREE.Points( geometry, new THREE.PointsMaterial( { 
-        			    color: 0xff0000, 
-        			    size: 1,
-        			    opacity: 0.5,
-        			    transparent: true
-        			} ) );
-        		    //particles.position.z = 1;
-        		    svgGroup.add(particles);
+                    
+                    if (opts.cut == "dashed") {
+    				    
+    				    // figure out how many points to generate
+    				    var ptCnt = shape.getLength() / (opts.dashPercent / 10);
+    				    //console.log("ptCnt:", ptCnt);
+    				    shape.autoClose = false;
+    				    var spacedPoints = shape.createSpacedPointsGeometry( ptCnt );
+    				    console.log("spacedPoints", spacedPoints);
+    				    
+    				    // we need to generate a ton of lines
+    				    // rather than one ongoing line
+    				    var isFirst = true;
+    				    var mypointsGeo = new THREE.Geometry();
+    				        
+    				    for (var iv in spacedPoints.vertices) {
+    				        var pt = spacedPoints.vertices[iv];
+    				        //console.log("pt:", pt, "isFirst:", isFirst, "mypointsGeo:", mypointsGeo);
+    				        
+    				        if (isFirst) {
+    				            // first point, start the line
+    				            mypointsGeo = new THREE.Geometry(); // reset array to empty
+    				            mypointsGeo.vertices[0] = pt;
+        				        isFirst = false;
+    				        } else {
+    				            // is second point, finish the line
+    				            mypointsGeo.vertices[1] = pt;
+    				            var line = new THREE.Line( mypointsGeo, material );
+    				            svgGroup.add( line );
+    				            isFirst = true;
+    				        }
+    				        //console.log("working on point:", pt);
+    				    }
+    				    //charGroup.add( line );
+    				    
+    				    var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: opts.size / 10 } ) );
+    				    particles.position.z = 1;
+    				    //charGroup.add(particles);
+    				    
+    				} else {
+        				// solid line
+	                    var geometry = new THREE.ShapeGeometry( shape );
+                        var lineSvg = new THREE.Line( geometry, material );
+            			svgGroup.add(lineSvg);
+            			
+            			var particles = new THREE.Points( geometry, new THREE.PointsMaterial( { 
+            			    color: 0xff0000, 
+            			    size: 1,
+            			    opacity: 0.5,
+            			    transparent: true
+            			} ) );
+            		    //particles.position.z = 1;
+            		    svgGroup.add(particles);
+    				}
+                    
+
                 }
                 
             });
@@ -648,12 +739,12 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.svgGroup = svgGroup;
             
 		    // now create our floating menus
-		    this.createWidthHeightFloatMenus();
+		    this.createFloatItems();
 		    
 		    return false;
 
         },
-        isWidthHeightBoxesMovedToTopOfDom: false,
+        isFloatItemsSetup: false,
         /**
          * Contains the originally sized bounding box for the SVG
          * right after it is imported. This is used to calculate scale
@@ -665,7 +756,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * the bounding box of the SVG to let user adjust width and height
          * of the imported vector image.
          */
-        createWidthHeightFloatMenus: function() {
+        createFloatItems: function() {
             console.log("this.obj3dmeta:", this.obj3dmeta); 
             
             // we need to attach to the controls onchange event so
@@ -677,7 +768,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             // move width/height textboxes to top of DOM
             // because their absolute positioning requires that
-            if (this.isWidthHeightBoxesMovedToTopOfDom == false) {
+            if (this.isFloatItemsSetup == false) {
                 
                 // move them and
                 // setup the onchange events
@@ -693,7 +784,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 $('#' + this.id + "-alignbox")
                     .removeClass("hidden");
                     // .detach().appendTo( "body" );
-                this.isWidthHeightBoxesMovedToTopOfDom = true;
+                this.isFloatItemsSetup = true;
                 
                 // if window resizes, reset the camera and textboxes
                 $(window).resize(this.onCameraChange.bind(this));
@@ -720,7 +811,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             // we now need to reposition our textboxes as if the camera was moved
             //setTimeout(this.onCameraChange.bind(this), 50);
-            this.onCameraChange.bind(this);
+            this.onCameraChange(); //.bind(this);
             
         },
         onAlignButtonClicked: function(evt) {
@@ -761,7 +852,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
     
             //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
             this.obj3dmeta.widget.wakeAnimate();
-            this.onCameraChange.bind(this);
+            this.onCameraChange(); //.bind(this);
+            this.generateGcode();
         },
         isAspectLocked: true,
         onAspectLockedBtnClick: function(evt) {
@@ -804,15 +896,30 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // clearTimeout(this.widthHeightChangeTimeoutPtr);
             // }
             //this.widthHeightChangeTimeoutPtr = setTimeout(this.onCameraChange.bind(this), 100);
-            this.onCameraChange.bind(this);
+            this.onCameraChange(); //.bind(this);
+            this.generateGcode();
 
         },
         onHeightChange: function(evt) {
             console.log("onHeightChange. evt:", evt);
             
-            // TODO 
+            // get new height
+            var h = $('#' + this.id + "-heightbox .input-heightbox").val();
+            // set scale
+            var hScale = h / this.originalBbox.height;
+            this.svgParentGroup.scale.x = hScale;
+            this.svgParentGroup.scale.y = hScale;
+            
+            // calc new width since we have aspect ratio locked
+            var w = this.originalBbox.width * hScale;
+            $('#' + this.id + "-widthbox .input-widthbox").val(w.toFixed(3));
+            
+            // wake the 3d viewer just in case
+            this.obj3dmeta.widget.wakeAnimate();
+
+            this.onCameraChange(); //.bind(this);
+            this.generateGcode();
         },
-        generateGcodeTimeoutPtr: null,
         cameraChangeTimeoutPtr: null,
         isCameraChangeTimeoutExist: false,
         /**
@@ -831,7 +938,6 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             }
             this.isCameraChangeTimeoutExist = true;
             this.cameraChangeTimeoutPtr = setTimeout(this.onCameraChangeCallback.bind(this), 30);
-  
         },
         /**
          * The method that gets called 50ms later after onCameraChange() is called.
@@ -871,13 +977,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 .css('left', ptAlignBox.x + "px")
                 .css('top', ptAlignBox.y + "px");
                 
-            // this may be an odd place to trigger gcode change, but this method
-            // is called on all scaling changes, so do it here for now
-            if (this.generateGcodeTimeoutPtr) {
-                //console.log("clearing last setTimeout for generating gcode cuz don't need anymore");
-                clearTimeout(this.generateGcodeTimeoutPtr);
-            }
-            this.generateGcodeTimeoutPtr = setTimeout(this.generateGcode.bind(this), 1000);
+            //this.generateGcode();
         },
         toScreenPosition: function(pt) {
             var vector = pt.clone(); //new THREE.Vector3();
@@ -1210,332 +1310,75 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //return path;
           //}
         },
-        /**
-         * Draw the text to the 3D viewer based on the user settings
-         * in the widget.
-         */
-        drawText: function(callback) {
-            console.log("doing drawText");
+        sendGcodeToWorkspace: function() {
             
-            var that = this;
-            
-            //var txt = "313-554-7502";
-            var txt = this.options.text;
-            var settings = {
-                size: this.options.height,
-                fontName: this.options.fontName,
-                fontWeight:  this.options.fontWeight, //"regular", //"bold",
-                holes: this.options.holes, //true, // don't generate hole paths cuz they'll get cut pointlessly
-                align: this.options.align, // "center", // left or center
-                dashed: this.options.cut == "dashed" ? true : false,
-                dashPercent: this.options.dashPercent,
+            var info = {
+                name: "SVG File: " + this.fileInfo.name.replace(/.svg$/i, ""), 
+                lastModified: new Date()
             };
+            // grab gcode from textarea
+            var gcodetxt = $('#' + this.id + ' .gcode').val();
             
-            this.createText(txt, settings, function(txt3d) {
-                console.log("text is created. txt3d:", txt3d);
-                txt3d.userData["text"] = txt;
-                txt3d.userData["settings"] = settings;
-                that.mySceneGroup = txt3d;
-                that.sceneReAddMySceneGroup();
-                //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/viewextents' );
-                if (callback) callback();
-            })
+            if (gcodetxt.length < 10) {
+                chilipeppr.publish("/com-chilipeppr-elem-flashmsg/flashmsg", "Error Sending Gcode", "It looks like you don't have any Gcode to send to the workspace. Huh?", 5 * 1000);
+                return;
+            }
+            
+            // send event off as if the file was drag/dropped
+            chilipeppr.publish("/com-chilipeppr-elem-dragdrop/ondropped", gcodetxt, info);
+            
+            // or use alternate pubsub
+            // "/com-chilipeppr-elem-dragdrop/loadGcode"
+
         },
         /**
-         * Create text in Three.js.<br>
-         * Params: createText(text, options)<br>
-         *   text - The text you want to render<br>
-         *   options - a set of options to tweak the rendering<br><pre>
-         *      {
-         *        fontName : String. helvetiker, optimer, gentilis, droid sans, droid serif
-         *        fontWeight: String. regular, bold
-                  size: Float. Size of the text.
-                  align: String. "left", "center"
-                  holes: Boolean. Whether to generate hole paths or not, like middle of a zero.
-                  dashed: Boolean. If true then every other line is rendered in wireframe, rather than solid lines.
-                  curveSegments: Integer. Number of points on the curves. Default is 12.
-                }</pre>
-        **/
-        createText: function(text, options, callback) {
+         * Setup the drap/drop pubsub subscriptions.
+         */
+        setupDragDrop: function () {
+            // subscribe to events
+            chilipeppr.subscribe("/com-chilipeppr-elem-dragdrop/ondragover", this, this.onDragOver);
+            chilipeppr.subscribe("/com-chilipeppr-elem-dragdrop/ondragleave", this, this.onDragLeave);
+            // /com-chilipeppr-elem-dragdrop/ondropped
+            chilipeppr.subscribe("/com-chilipeppr-elem-dragdrop/ondropped", this, this.onDropped, 9); // default is 10, we do 9 to be higher priority
+        },
+        /**
+         * Contains the file info for the dropped file.
+         */
+        fileInfo: null,
+        /**
+         * File drag/drop method that gets triggered after user drops file onto browser.
+         */
+        onDropped: function (data, info) {
+            console.log("onDropped. len of file:", data.length, "info:", info, "this:", this);
             
-            // taken from http://threejs.org/examples/webgl_geometry_text.html
-            var fontMap = {
-
-				"helvetiker": 0,
-				"optimer": 1,
-				"gentilis": 2,
-				"droid/droid_sans": 3,
-				"droid/droid_serif": 4
-
-			};
-
-			var weightMap = {
-
-				"regular": 0,
-				"bold": 1
-
-			};
-            
-            // figure out defaults and overrides
-            var opts = {
-
-                font: null,
-                
-				size: options.size ? options.size : 20,
-				height: options.height ? options.height : 10,
-				curveSegments: options.curveSegments ? options.curveSegments : 4,
-
-                holes: options.holes ? true : false,
-                align: options.align ? options.align : "left",
-                dashed: options.dashed ? options.dashed : false,
-                dashPercent : options.dashPercent ? options.dashPercent : 20,
-				// bevelThickness: options.bevelThickness ? options.bevelThickness : 2,
-				// bevelSize: options.bevelSize ? options.bevelSize : 1.5,
-				// bevelEnabled: options.bevelEnabled ? options.bevelEnabled : false,
-
-                // mirror: options.mirror ? options.mirror : false,
-                
-				//material: 0,
-				//extrudeMaterial: 1
-
-			}
-			//console.log("opts:", opts);
-            
-            var fontOpts = {
-                fontName : options.fontName ? options.fontName : "helvetiker",
-                fontWeight : options.fontWeight ? options.fontWeight : "regular",
-            }
-            //console.log("fontOpts:", fontOpts);
-            
-            this.loadFont(fontOpts, function(font) {
-                    
-                // we have our font loaded, now we can render
-                opts.font = font;
-                
-                var group = new THREE.Group();
-    			//group.position.y = 100;
-                
-                //console.log("final opts to render text with:", opts);
-    			//var textGeo = new THREE.TextGeometry( text, opts );
-    			
-    			//var font = opts.font;
-
-            	if ( font instanceof THREE.Font === false ) {
-            
-            		console.error( 'THREE.TextGeometry: font parameter is not an instance of THREE.Font.' );
-            		//return new THREE.Geometry();
-                    return;
-            	}
-            
-            	var shapes = font.generateShapes( text, opts.size, opts.curveSegments );
-                //console.log("shapes:", shapes);
-                //var textGeo = new THREE.ShapeGeometry( shapes );
-                //console.log("textGeo:", textGeo);
-                
-                var material = new THREE.LineBasicMaterial({
-                	color: 0x0000ff
-                });
-
-                var textGroup = new THREE.Group();
-                
-                // if the user chose dashed, how big should the dashes
-                // be cuz we sample the shape at that percent to create
-                // a point
-				var percentOfFontHeight = opts.dashPercent;
-
-                // loop thru each shape and generate a line object
-                for (var i in shapes) {
-                    
-                    var shape = shapes[i];
-                    //console.log("shape:", shape, "length:", shape.getLength());
-                    
-                    var charGroup = new THREE.Group();
-                    
-                    // lines
-    				shape.autoClose = true;
-    				var points = shape.createPointsGeometry();
-    				//console.log("points:", points);
-    				
-    				if (opts.dashed) {
-    				    
-    				    // figure out how many points to generate
-    				    var ptCnt = shape.getLength() / (opts.size / percentOfFontHeight);
-    				    //console.log("ptCnt:", ptCnt);
-    				    shape.autoClose = false;
-    				    var spacedPoints = shape.createSpacedPointsGeometry( ptCnt );
-    				    //console.log("spacedPoints", spacedPoints);
-    				    
-    				    // we need to generate a ton of lines
-    				    // rather than one ongoing line
-    				    var isFirst = true;
-    				    var mypointsGeo = new THREE.Geometry();
-    				        
-    				    for (var iv in spacedPoints.vertices) {
-    				        var pt = spacedPoints.vertices[iv];
-    				        //console.log("pt:", pt, "isFirst:", isFirst, "mypointsGeo:", mypointsGeo);
-    				        
-    				        if (isFirst) {
-    				            // first point, start the line
-    				            mypointsGeo = new THREE.Geometry(); // reset array to empty
-    				            mypointsGeo.vertices[0] = pt;
-        				        isFirst = false;
-    				        } else {
-    				            // is second point, finish the line
-    				            mypointsGeo.vertices[1] = pt;
-    				            var line = new THREE.Line( mypointsGeo, material );
-    				            charGroup.add( line );
-    				            isFirst = true;
-    				        }
-    				        //console.log("working on point:", pt);
-    				    }
-    				    //charGroup.add( line );
-    				    
-    				    var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: opts.size / 10 } ) );
-    				    particles.position.z = 1;
-    				    //charGroup.add(particles);
-    				    
-    				} else {
-        				// solid line
-        				var line = new THREE.Line( points, material );
-        				charGroup.add( line );
-    				}
-    				charGroup.userData["character"] = text[i];
-    				charGroup.userData["characterIndex"] = i;
-    				charGroup.userData["fromText"] = text;
-    				
-    				
-    				// see if there are holes
-    				if (opts.holes) {
-        				for (var i2 in shape.holes) {
-        				    var shape = shape.holes[i2];
-        				    shape.autoClose = true;
-            				var points = shape.createPointsGeometry();
-            				
-            				if (opts.dashed) {
-            				    // we need to generate a ton of lines
-            				    // rather than one ongoing line
-            				    //console.log("not implemented dashed holes yet");
-            				    
-            				    var ptCnt = shape.getLength() / (opts.size / percentOfFontHeight);
-            				    //console.log("ptCnt:", ptCnt);
-            				    shape.autoClose = false;
-            				    var spacedPoints = shape.createSpacedPointsGeometry( ptCnt );
-            				    //console.log("spacedPoints", spacedPoints);
-            				    
-            				    // we need to generate a ton of lines
-            				    // rather than one ongoing line
-            				    var isFirst = true;
-            				    var mypointsGeo = new THREE.Geometry();
-            				        
-            				    for (var iv in spacedPoints.vertices) {
-            				        var pt = spacedPoints.vertices[iv];
-            				        //console.log("pt:", pt, "isFirst:", isFirst, "mypointsGeo:", mypointsGeo);
-            				        
-            				        if (isFirst) {
-            				            // first point, start the line
-            				            mypointsGeo = new THREE.Geometry(); // reset array to empty
-            				            mypointsGeo.vertices[0] = pt;
-                				        isFirst = false;
-            				        } else {
-            				            // is second point, finish the line
-            				            mypointsGeo.vertices[1] = pt;
-            				            var line = new THREE.Line( mypointsGeo, material );
-            				            charGroup.add( line );
-            				            isFirst = true;
-            				        }
-            				        //console.log("working on point:", pt);
-            				    }
-            				    
-            				    var particles = new THREE.Points( spacedPoints, new THREE.PointsMaterial( { color: 0xff0000, size: opts.size / 10 } ) );
-            				    particles.position.z = 1;
-            				    //charGroup.add(particles);
-            				    
-            				} else {
-            				    // solid line
-            				    var line = new THREE.Line( points, material );
-                				line.userData["isHole"] = true;
-            				    charGroup.add( line );
-            				}
-
-        				    //console.log("got hole. generating line.")
-        				}
-    				}
-
-                    //console.log("charGroup:", charGroup);
-    				
-    				textGroup.add( charGroup );
-                    
-                }
-				
-				if (opts.align == "center") {
-    				var bbox = new THREE.Box3().setFromObject(textGroup);
-    				
-        			var centerOffset = -0.5 * ( bbox.max.x - bbox.min.x );
-        
-                    // y position of text
-                    var hover = 0;
-                    
-        			textGroup.position.x = centerOffset;
-        			textGroup.position.y = hover;
-        			textGroup.position.z = 0;
-				} else if (opts.align == "right") {
-				    var bbox = new THREE.Box3().setFromObject(textGroup);
-    				
-        			var rightOffset = -1 * ( bbox.max.x - bbox.min.x );
-        
-                    // y position of text
-                    var hover = 0;
-                    
-        			textGroup.position.x = rightOffset;
-        			textGroup.position.y = hover;
-        			textGroup.position.z = 0;
-				}
-				
-    			textGroup.rotation.x = 0;
-    			textGroup.rotation.y = Math.PI * 2;
-                
-				//console.log("textGroup:", textGroup);
-
-    			group.add( textGroup );
-    
-    			// call the user's callback with our final three.js object
-    			callback(group);
-
-                    
-            });
-
-		},
-		fontLoaded: {},
-		loadFont: function(fontOpts, callback) {
-
-            //console.log("THREE:", THREE);
-			var loader = new THREE.FontLoader();
-			// threejs.org/examples/fonts/helvetiker_bold.typeface.js
-			// https://i2dcui.appspot.com/js/three/fonts/
-			var url = '' +
-			    //'https://i2dcui.appspot.com/js/three/fonts/' + 
-			    'https://i2dcui.appspot.com/slingshot?url=http://threejs.org/examples/fonts/' +
-			    fontOpts.fontName + '_' + 
-			    fontOpts.fontWeight + '.typeface.js';
-
-            // see if font is loaded already
-            if (url in this.fontLoaded) {
-                //console.warn("font already loaded. url:", url);
-                callback(this.fontLoaded[url]);
+            if (info.name.match(/.svg$/i)) {
+                // this looks like an SVG file
+                chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', "Loaded SVG File", "Looks like you dragged in an SVG file. It is now loaded into the textbox in the SVG2Gcode widget and rendered in the 3D Viewer.", 5 * 1000, false);
+                this.fileInfo = info;
+                $('#' + this.id + ' .input-svg').val(data);
+                this.onRender();
+                // We must return false so the pubsub stops transmitting to other dragdrop listeners
+                // including the default listener which is the gcode widget. This obviously won't load
+                // as Gcode.
+                return false;
             } else {
-				var that = this;
-
-    			console.log("about to get font url:", url);
-    			loader.load( url, function ( response ) {
-    				var font = response;
-    				//console.log("loaded font:", font);
-    				that.fontLoaded[url] = font;
-    				callback(font);
-    				//refreshText();
-    			});
+                console.log("we do not have an SVG file. sad.");
             }
-		},
-		
+        
+        },
+        onDragOver: function () {
+            console.log("onDragOver");
+            $('#' + this.id).addClass("panel-primary");
+        },
+        onDragLeave: function () {
+            console.log("onDragLeave");
+            $('#' + this.id).removeClass("panel-primary");
+        },
+
+        /**
+         * After init3d is called, it attempts multiple times to get ahold of the 3D Viewer
+         * and when it does it calls this method.
+         */
         onInit3dSuccess: function () {
             console.log("onInit3dSuccess. That means we finally got an object back.");
             this.clear3dViewer();
@@ -1607,18 +1450,6 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     }
                 } );    
             }
-        },
-        /**
-         * onHelloBtnClick is an example of a button click event callback
-         */
-        onHelloBtnClick: function(evt) {
-            console.log("saying hello 2 from btn in tab 1");
-            chilipeppr.publish(
-                '/com-chilipeppr-elem-flashmsg/flashmsg',
-                "Hello 2 Title",
-                "Hello World 2 from Tab 1 from widget " + this.id,
-                2000 /* show for 2 second */
-            );
         },
         /**
          * User options are available in this property for reference by your

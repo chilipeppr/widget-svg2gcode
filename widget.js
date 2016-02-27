@@ -1032,11 +1032,14 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // console.log("is a css width:", $(canvas).css('width'));
                 canvasWidth = parseInt($(canvas).css('width'));
             }
+            canvasWidth = $( window ).width();
+            
             var canvasHeight = canvas.height;
             if ($(canvas).css('height')) {
                 // console.log("is a css height:", $(canvas).css('height'));
                 canvasHeight = parseInt($(canvas).css('height'));
             }
+            canvasHeight = $( window ).height();
             //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
             vector.z = 1;
             //vector.set( 1, 2, 3 );

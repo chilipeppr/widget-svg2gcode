@@ -265,6 +265,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + ' .svg2gcode-modetype').change(this.generateGcode.bind(this));
             $('#' + this.id + ' .input-feedrate').change(this.generateGcode.bind(this));
             
+            $('#' + this.id + ' .btn-sendgcodetows').click(this.sendGcodeToWorkspace.bind(this));
+            
         },
         isChanging: false,
         onChange: function() {
@@ -1311,6 +1313,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
           //}
         },
         sendGcodeToWorkspace: function() {
+            
+            // check file name
+            if (!this.fileInfo || ! 'name' in this.fileInfo || ! this.fileInfo.name.length > 0) {
+                this.fileInfo = {name: "pasted"};
+            }
             
             var info = {
                 name: "SVG File: " + this.fileInfo.name.replace(/.svg$/i, ""), 

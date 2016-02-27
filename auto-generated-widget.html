@@ -332,6 +332,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + ' .svg2gcode-modetype').change(this.generateGcode.bind(this));
             $('#' + this.id + ' .input-feedrate').change(this.generateGcode.bind(this));
             
+            $('#' + this.id + ' .btn-sendgcodetows').click(this.sendGcodeToWorkspace.bind(this));
+            
         },
         isChanging: false,
         onChange: function() {
@@ -1379,6 +1381,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         },
         sendGcodeToWorkspace: function() {
             
+            // check file name
+            if (!this.fileInfo || ! 'name' in this.fileInfo || ! this.fileInfo.name.length > 0) {
+                this.fileInfo = {name: "pasted"};
+            }
+            
             var info = {
                 name: "SVG File: " + this.fileInfo.name.replace(/.svg$/i, ""), 
                 lastModified: new Date()
@@ -1699,7 +1706,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 <!-- Tab 1 -->
                 <div class="tab-pane active" id="com-zipwhip-widget-svg2gcode-tab1">
 
-                    <p style="margin-top:0px;">Paste SVG Code Here</p>
+                    <p style="margin-top:0px;">Paste/Drag SVG Code Here</p>
                     <textarea class="form-control input-svg" rows="3" spellcheck="false">
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->

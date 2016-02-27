@@ -206,6 +206,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         activate: function() {
             if (this.obj3d) {
                 this.onRender();
+                this.obj3dmeta.widget.wakeAnimate();
             } else {
                 console.log("being asked to activate svg2gcode but have no handle to 3d viewer");
             }
@@ -1520,15 +1521,19 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         },
         mySceneGroup: null,
         sceneReAddMySceneGroup: function() {
+            console.log("sceneReAddMySceneGroup. obj3d:", this.obj3d, "obj3dmeta:", this.obj3dmeta);
             if (this.obj3d && this.mySceneGroup) {
                 this.obj3d.add(this.mySceneGroup);
+                //this.obj3d.parent().add(this.mySceneGroup);
+                //this.obj3dmeta.scene.add(this.mySceneGroup);
             }
             this.obj3dmeta.widget.wakeAnimate();
         },
         sceneRemoveMySceneGroup: function() {
             if (this.obj3d && this.mySceneGroup) {
                 this.obj3d.remove(this.mySceneGroup);
-                
+                //this.obj3d.parent().remove(this.mySceneGroup);
+                //this.obj3dmeta.scene.remove(this.mySceneGroup);
             }
             this.obj3dmeta.widget.wakeAnimate();
         },

@@ -29,6 +29,8 @@ requirejs.config({
         // SmoothieCharts: '//smoothiecharts.org/smoothie',
         Snap: '//i2dcui.appspot.com/slingshot?url=http://snapsvg.io/assets/js/snap.svg-min.js',
         //Snap: '//i2dcui.appspot.com/slingshot?url=https://raw.githubusercontent.com/adobe-webplatform/Snap.svg/master/src/svg.js'
+        ThreeProjector: '//i2dcui.appspot.com/geturl?url=http://threejs.org/examples/js/renderers/Projector.js',
+        
     },
     shim: {
         // See require.js docs for how to define dependencies that
@@ -76,8 +78,9 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
             
             // only init eagle widget once 3d is loaded
             // init my widget
-            myWidget.init();
-            myWidget.activate();
+            myWidget.init(function() {
+                myWidget.activate();
+            });
         });
     });
 
@@ -176,12 +179,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * All widgets should have an init method. It should be run by the
          * instantiating code like a workspace or a different widget.
          */
-        init: function() {
+        init: function(callback) {
             console.log("I am being initted. Thanks.");
 
             this.setupUiFromLocalStorage();
 
-            this.init3d();
+            var that = this;
+            cprequire(['ThreeProjector'], function() {
+                console.log("ThreeProjector loaded");
+                that.init3d();
+                if (callback) callback();
+            });
+            //this.init3d();
             
             // May need to not subscribe during production. Not sure.
             this.setupDragDrop();
@@ -740,20 +749,27 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             var widthPt = new THREE.Vector3(bbox.box.max.x / 2, bbox.box.min.y, 0);
             var widthGeo = new THREE.Geometry();
-            widthGeo.vertices.push(widthPt);
+            //widthGeo.vertices.push(widthPt);
+            widthGeo.vertices.push(new THREE.Vector3(0,0,0));
             var widthParticle = new THREE.Points( widthGeo, new THREE.PointsMaterial( { color: 0x0000ff, size: 5 } ) );
+            widthParticle.position.x = widthPt.x;
+            widthParticle.position.y = widthPt.y;
             svgParentGroup.add(widthParticle);
 		    
             var heightPt = new THREE.Vector3(bbox.box.min.x, bbox.box.max.y / 2, 0);
             var heightGeo = new THREE.Geometry();
-            heightGeo.vertices.push(heightPt);
+            heightGeo.vertices.push(new THREE.Vector3(0,0,0));
             var heightParticle = new THREE.Points( heightGeo, new THREE.PointsMaterial( { color: 0x00ff00, size: 5 } ) );
+		    heightParticle.position.x = heightPt.x;
+		    heightParticle.position.y = heightPt.y;
 		    svgParentGroup.add(heightParticle);
 
             var alignBoxPt = new THREE.Vector3(bbox.box.min.x, bbox.box.min.y, 0);
             var alignBoxGeo = new THREE.Geometry();
-            alignBoxGeo.vertices.push(alignBoxPt);
+            alignBoxGeo.vertices.push(new THREE.Vector3(0,0,0));
             var alignBoxParticle = new THREE.Points( alignBoxGeo, new THREE.PointsMaterial( { color: 0xffff00, size: 5 } ) );
+		    alignBoxParticle.position.x = alignBoxPt.x;
+		    alignBoxParticle.position.y = alignBoxPt.y;
 		    svgParentGroup.add(alignBoxParticle);
 		    
 		    this.widthParticle = widthParticle;
@@ -977,19 +993,19 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // position the textboxes
             // console.log("this.widthParticle:", this.widthParticle);
             var ptWidth = this.toScreenPosition(
-                this.svgParentGroup.localToWorld(
-                    this.widthParticle.geometry.vertices[0].clone()
-                )
+                // this.svgParentGroup.localToWorld(
+                    this.widthParticle //this.widthParticle.geometry.vertices[0].clone()
+                // )
             );
             var ptHeight = this.toScreenPosition(
-                this.svgParentGroup.localToWorld(
-                    this.heightParticle.geometry.vertices[0].clone()
-                )
+                // this.svgParentGroup.localToWorld(
+                    this.heightParticle //.geometry.vertices[0].clone()
+                // )
             );
             var ptAlignBox = this.toScreenPosition(
-                this.svgParentGroup.localToWorld(
-                    this.alignBoxParticle.geometry.vertices[0].clone()
-                )
+                // this.svgParentGroup.localToWorld(
+                    this.alignBoxParticle //.geometry.vertices[0].clone()
+                // )
             );
             // console.log("ptWidth:", ptWidth, "ptHeight:", ptHeight);
             $('#' + this.id + "-widthbox")
@@ -1007,7 +1023,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         drawDebugArrowHelperFor3DToScreenPosition: function() {
             var ptWidth = this.toScreenPosition(
                 this.svgParentGroup.localToWorld(
-                    this.widthParticle.geometry.vertices[0].clone()
+                    this.widthParticle //.geometry.vertices[0].clone()
                 )
             );
             
@@ -1025,7 +1041,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             console.log("obj3d", this.obj3dmeta, this.obj3d);
         },
         vectorScreen: null,
-        toScreenPosition: function(pt) {
+        toScreenPosition3: function(pt) {
             var vector = pt.clone(); //new THREE.Vector3();
             var canvas = this.obj3dmeta.widget.renderer.domElement;
             
@@ -1064,16 +1080,26 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             return vector;
         },
         // this was from mr. doob and is a tad bit different from above
-        toScreenPosition2: function(pt) {
-            var width = 640, height = 480;
+        toScreenPosition: function(object) {
+            
+            console.log("toScreenPosition. object:", object);
+            
+            var width = $( window ).width();
+            var height = $( window ).height();
             var widthHalf = width / 2, heightHalf = height / 2;
             
             var vector = new THREE.Vector3();
             var projector = new THREE.Projector();
-            projector.projectVector( vector.setFromMatrixPosition( pt.matrixWorld ), this.obj3dmeta.camera );
+            projector.projectVector( vector.setFromMatrixPosition( object.matrixWorld ), this.obj3dmeta.camera );
+            
+            // create a copy of the vector that points to the screen coords for debug
+            // so we can draw an arrowHelper to point at the xy that we want
+            this.vectorScreen = vector.clone();
             
             vector.x = ( vector.x * widthHalf ) + widthHalf;
             vector.y = - ( vector.y * heightHalf ) + heightHalf;  
+            
+            return vector;
         },
         /**
          * Create a Three.js Mesh from a Three.js shape.

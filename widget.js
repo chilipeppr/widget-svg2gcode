@@ -78,9 +78,11 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
             
             // only init eagle widget once 3d is loaded
             // init my widget
-            myWidget.init(function() {
-                myWidget.activate();
-            });
+            // myWidget.init(function() {
+            //     myWidget.activate();
+            // });
+            myWidget.init();
+            myWidget.activate();
         });
     });
 
@@ -204,6 +206,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             var that = this;
             cprequire(['ThreeProjector'], function() {
                 console.log("ThreeProjector loaded");
+                //setTimeout( that.init3d.bind(that), 500);
                 that.init3d();
                 /*
                 that.init3d(function() {
@@ -330,22 +333,24 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         onRender: function(callback) {
             
             // remove text3d from the 3d viewer
-            this.sceneRemoveMySceneGroup();
+            // this.sceneRemoveMySceneGroup();
             
             // need this to force garbage collection cuz three.js
             // hangs onto geometry
-            this.sceneDisposeMySceneGroup();
-            
-            this.clear3dViewer();
-            
+            // this.sceneDisposeMySceneGroup();
+            // chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
+                
+            // this.clear3dViewer();
+            // chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
+                
             // get the user settings from the UI
             this.getSettings();
             
             var that = this;
             
             // read in the svg text and draw it as three.js object in the 3d viewer
-            this.drawSvg();
-            
+            //this.drawSvg();
+            setTimeout(this.drawSvg.bind(this), 1000);
             //that.generateGcode();
             
             //this.extractSvgPathsFromSVGFile(this.options.svg);
@@ -1485,16 +1490,22 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         onInit3dSuccess: function () {
             console.log("onInit3dSuccess. That means we finally got an object back.");
-            this.clear3dViewer();
+            //this.clear3dViewer();
+            
             
             // open the last file
-            //var that = this;
+            var that = this;
             //setTimeout(function () {
                 //that.open();
             //}, 1000);
             //this.drawtexterator();
             //this.drawText();
-            this.onRender();
+            setTimeout(function() {
+                //that.clear3dViewer();
+                //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
+                that.onRender();
+            }, 1500);
+            //this.onRender();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
         obj3dmeta: null, // gets metadata for 3dviewer

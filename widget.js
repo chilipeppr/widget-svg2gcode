@@ -216,6 +216,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         unactivate: function() {
             this.sceneRemoveMySceneGroup();
+            this.sceneDisposeMySceneGroup();
         },
         /**
          * Try to get a reference to the 3D viewer.

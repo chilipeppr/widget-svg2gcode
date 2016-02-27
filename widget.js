@@ -1090,6 +1090,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             var vector = new THREE.Vector3();
             var projector = new THREE.Projector();
+            object.matrixWorldNeedsUpdate = true;
             projector.projectVector( vector.setFromMatrixPosition( object.matrixWorld ), this.obj3dmeta.camera );
             
             // create a copy of the vector that points to the screen coords for debug

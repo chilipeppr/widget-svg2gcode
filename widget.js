@@ -285,6 +285,10 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             $('#' + this.id + ' .btn-sendgcodetows').click(this.sendGcodeToWorkspace.bind(this));
             
+            // debug arrow
+            $('#' + this.id + ' .btn-arrow').click(this.drawDebugArrowHelperFor3DToScreenPosition.bind(this));
+            
+            
         },
         isChanging: false,
         onChange: function() {
@@ -999,6 +1003,25 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 
             //this.generateGcode();
         },
+        drawDebugArrowHelperFor3DToScreenPosition: function() {
+            var ptWidth = this.toScreenPosition(
+                this.svgParentGroup.localToWorld(
+                    this.widthParticle.geometry.vertices[0].clone()
+                )
+            );
+            
+            var dir = this.vectorScreen; //ptWidth; //new THREE.Vector3( 1, 0, 0 );
+            var origin = this.widthParticle.geometry.vertices[0].clone(); //new THREE.Vector3( 0, 0, 0 );
+            var length = 10;
+            var hex = 0xff0000;
+            console.log("dir:", dir, "origin:", origin);
+            
+            var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+            this.svgParentGroup.add( arrowHelper );
+            var arrowHelper2 = new THREE.ArrowHelper( origin, dir, length, 0x0000ff );
+            this.svgParentGroup.add( arrowHelper2 );
+        },
+        vectorScreen: null,
         toScreenPosition: function(pt) {
             var vector = pt.clone(); //new THREE.Vector3();
             var canvas = this.obj3dmeta.widget.renderer.domElement;
@@ -1014,18 +1037,24 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // console.log("is a css height:", $(canvas).css('height'));
                 canvasHeight = parseInt($(canvas).css('height'));
             }
-            console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
-            
+            //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
+            vector.z = 1;
             //vector.set( 1, 2, 3 );
             
             // map to normalized device coordinate (NDC) space
             vector.project( this.obj3dmeta.camera );
-            console.log("vector after project:", vector);
+            //console.log("vector after project:", vector);
+            
+            // create a copy of the vector that points to the screen coords for debug
+            // so we can draw an arrowHelper to point at the xy that we want
+            this.vectorScreen = vector.clone();
             
             // map to 2D screen space
+            // the origin of the 3d viewere is 0,0 at the center of the screen
+            // so we have to shift to the top/left to make it map for CSS positioning
             vector.x = Math.round( (   vector.x + 1 ) * canvasWidth  / 2 ); // / 2,
             vector.y = Math.round( ( - vector.y + 1 ) * canvasHeight / 2 ); // / 2;
-            vector.z = 0;
+            //vector.z = 1;
             return vector;
         },
         // this was from mr. doob and is a tad bit different from above

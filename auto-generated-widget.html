@@ -206,6 +206,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         publish: {
             // Define a key:value pair here as strings to document what signals you publish.
             //'/onExampleGenerate': 'Example: Publish this signal when we go to generate gcode.'
+            'didDrop' : "We will publish this if we get an onDropped event and it is for an SVG file. This signal would likely be listened to by the workspace so it can actively show the widget to the user if they drop an SVG file into the workspace. The payload contains the file info like {name: \"myfile.svg\", lastModified: \"1/10/2017 12:12PM\"}",
         },
         /**
          * Define the subscribe signals that this widget/element owns or defines so that
@@ -255,6 +256,22 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.forkSetup();
 
             console.log("I am done being initted.");
+        },
+        /**
+         * Called by the workspace to activate this widget.
+         */
+        activate: function() {
+            if (this.obj3d) {
+                this.onRender();
+            } else {
+                console.log("being asked to activate svg2gcode but have no handle to 3d viewer");
+            }
+        },
+        /**
+         * Called by the workspace to deactivate this widget.
+         */
+        unactivate: function() {
+            this.sceneRemoveMySceneGroup();
         },
         /**
          * Try to get a reference to the 3D viewer.
@@ -1429,8 +1446,12 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // this looks like an SVG file
                 chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', "Loaded SVG File", "Looks like you dragged in an SVG file. It is now loaded into the textbox in the SVG2Gcode widget and rendered in the 3D Viewer.", 5 * 1000, false);
                 this.fileInfo = info;
+                // publish to any listeners that we had a drop. this signal would mostly
+                // be subscribed to by the workspace so it knows to show this widget to the user.
+                chilipeppr.publish('/' + this.id + '/didDrop', this.fileInfo);
                 $('#' + this.id + ' .input-svg').val(data);
                 this.onRender();
+                
                 // We must return false so the pubsub stops transmitting to other dragdrop listeners
                 // including the default listener which is the gcode widget. This obviously won't load
                 // as Gcode.
@@ -1464,7 +1485,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //}, 1000);
             //this.drawtexterator();
             //this.drawText();
-            this.onRender();
+            //this.onRender();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
         obj3dmeta: null, // gets metadata for 3dviewer

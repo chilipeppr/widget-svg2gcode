@@ -776,6 +776,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // create a parent group so we can attach some point positions for width/height
             // handles for the floating textboxes and a marquee
             var svgParentGroup = new THREE.Group();
+            svgParentGroup.name = "SvgParentGroup";
             svgParentGroup.add(svgGroup);
 
             // Add marquee bounding box
@@ -1087,6 +1088,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.svgParentGroup.add( arrowHelper );
             var arrowHelper2 = new THREE.ArrowHelper( origin, dir, length, 0x0000ff );
             this.svgParentGroup.add( arrowHelper2 );
+            
+            console.log("obj3d", this.obj3dmeta, this.obj3d);
         },
         vectorScreen: null,
         toScreenPosition: function(pt) {

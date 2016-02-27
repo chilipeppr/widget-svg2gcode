@@ -1375,7 +1375,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         onDropped: function (data, info) {
             console.log("onDropped. len of file:", data.length, "info:", info, "this:", this);
             
-            if (info.name.match(/.svg$/i)) {
+            if (info && 'name' in info && info.name.match(/.svg$/i)) {
                 // this looks like an SVG file
                 chilipeppr.publish('/com-chilipeppr-elem-flashmsg/flashmsg', "Loaded SVG File", "Looks like you dragged in an SVG file. It is now loaded into the textbox in the SVG2Gcode widget and rendered in the 3D Viewer.", 5 * 1000, false);
                 this.fileInfo = info;

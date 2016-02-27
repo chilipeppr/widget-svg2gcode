@@ -394,6 +394,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // hangs onto geometry
             this.sceneDisposeMySceneGroup();
             
+            this.clear3dViewer();
+            
             // get the user settings from the UI
             this.getSettings();
             
@@ -1541,7 +1543,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         onInit3dSuccess: function () {
             console.log("onInit3dSuccess. That means we finally got an object back.");
-            this.clear3dViewer();
+            //this.clear3dViewer();
             
             // open the last file
             //var that = this;

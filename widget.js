@@ -184,12 +184,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
 
             this.setupUiFromLocalStorage();
 
-            var that = this;
-            cprequire(['ThreeProjector'], function() {
-                console.log("ThreeProjector loaded");
-                that.init3d();
-                if (callback) callback();
-            });
+            
             //this.init3d();
             
             // May need to not subscribe during production. Not sure.
@@ -198,18 +193,32 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.btnSetup();
             this.forkSetup();
 
+            if (callback) callback();
+
             console.log("I am done being initted.");
         },
         /**
          * Called by the workspace to activate this widget.
          */
         activate: function() {
-            if (this.obj3d) {
-                this.onRender();
-                this.obj3dmeta.widget.wakeAnimate();
-            } else {
-                console.log("being asked to activate svg2gcode but have no handle to 3d viewer");
-            }
+            var that = this;
+            cprequire(['ThreeProjector'], function() {
+                console.log("ThreeProjector loaded");
+                that.init3d();
+                /*
+                that.init3d(function() {
+                    //if (callback) callback();
+                    console.log("inside activate got init3d done");
+                    if (that.obj3d) {
+                        that.onRender();
+                        //this.obj3dmeta.widget.wakeAnimate();
+                    } else {
+                        console.log("being asked to activate svg2gcode but have no handle to 3d viewer");
+                    }
+                });
+                */
+            });
+            
         },
         /**
          * Called by the workspace to deactivate this widget.
@@ -1476,7 +1485,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         onInit3dSuccess: function () {
             console.log("onInit3dSuccess. That means we finally got an object back.");
-            //this.clear3dViewer();
+            this.clear3dViewer();
             
             // open the last file
             //var that = this;
@@ -1485,7 +1494,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //}, 1000);
             //this.drawtexterator();
             //this.drawText();
-            //this.onRender();
+            this.onRender();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
         obj3dmeta: null, // gets metadata for 3dviewer

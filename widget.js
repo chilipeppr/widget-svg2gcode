@@ -310,8 +310,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             // debug arrow
             $('#' + this.id + ' .btn-arrow').click(this.drawDebugArrowHelperFor3DToScreenPosition.bind(this));
+            $('#' + this.id + ' .btn-test').click(this.debugDrawTestObjects.bind(this));
             
             
+        },
+        debugDrawTestObjects: function() {
+            this.clear3dViewer();
+            this.sceneRemoveMySceneGroup();
+            this.sceneDisposeMySceneGroup();
+            
+            var width = $( window ).width();
+            var height = $( window ).height();
+            $('.test-info').text("Canvas w: " + width + ", h: " + height);
         },
         isChanging: false,
         onChange: function() {
@@ -331,23 +341,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             }
         },
         onRender: function(callback) {
-            
-            // remove text3d from the 3d viewer
-            this.sceneRemoveMySceneGroup();
-            
-            // need this to force garbage collection cuz three.js
-            // hangs onto geometry
-            this.sceneDisposeMySceneGroup();
-            chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
                 
             this.clear3dViewer();
-            
-            // i am forcing the redraw of the grid/etc cuz if units change then
-            // this stuff needs redrawn. if i had a gcode file loaded in the 3d viewer
-            // it would render everything for inch size, but then when the svg was
-            // loaded in mm mode everything would be crazy small so this solved it.
-            this.obj3dmeta.widget.drawAxesToolAndExtents();
-
+          
             // get the user settings from the UI
             this.getSettings();
             
@@ -1087,8 +1083,13 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 canvasHeight = parseInt($(canvas).css('height'));
             }
             canvasHeight = $( window ).height();
+            
+            var width = $( window ).width();
+            var height = $( window ).height();
+            var widthHalf = width / 2, heightHalf = height / 2;
+            
             //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
-            vector.z = 1;
+            // vector.z = 1;
             //vector.set( 1, 2, 3 );
             
             // map to normalized device coordinate (NDC) space
@@ -1102,8 +1103,10 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // map to 2D screen space
             // the origin of the 3d viewere is 0,0 at the center of the screen
             // so we have to shift to the top/left to make it map for CSS positioning
-            vector.x = Math.round( (   vector.x + 1 ) * canvasWidth  / 2 ); // / 2,
-            vector.y = Math.round( ( - vector.y + 1 ) * canvasHeight / 2 ); // / 2;
+            // vector.x = Math.round( (   vector.x + 1 ) * canvasWidth  / 2 ); // / 2,
+            // vector.y = Math.round( ( - vector.y + 1 ) * canvasHeight / 2 ); // / 2;
+            vector.x = ( vector.x * widthHalf ) + widthHalf;
+            vector.y = - ( vector.y * heightHalf ) + heightHalf;  
             //vector.z = 1;
             return vector;
         },
@@ -1540,13 +1543,30 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         is3dViewerReady: false,
         clear3dViewer: function () {
             console.log("clearing 3d viewer");
+            
+            // remove text3d from the 3d viewer
+            this.sceneRemoveMySceneGroup();
+            
+            // need this to force garbage collection cuz three.js
+            // hangs onto geometry
+            this.sceneDisposeMySceneGroup();
+            chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
+            
             chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneclear");
+            
             //if (this.obj3d) this.obj3d.children = [];            
             /*
             this.obj3d.children.forEach(function(obj3d) {
                 chilipeppr.publish("/com-chilipeppr-widget-3dviewer/sceneremove", obj3d);
             });
             */
+            
+            // i am forcing the redraw of the grid/etc cuz if units change then
+            // this stuff needs redrawn. if i had a gcode file loaded in the 3d viewer
+            // it would render everything for inch size, but then when the svg was
+            // loaded in mm mode everything would be crazy small so this solved it.
+            this.obj3dmeta.widget.drawAxesToolAndExtents();
+            
             this.is3dViewerReady = true;
             
             // this should reset the 3d viewer to resize to high dpi displays

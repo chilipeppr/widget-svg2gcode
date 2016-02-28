@@ -830,6 +830,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // because their absolute positioning requires that
             if (this.isFloatItemsSetup == false) {
                 
+                $('.test-info').text("did detach");
                 // move them and
                 // setup the onchange events
                 $('#' + this.id + "-widthbox")

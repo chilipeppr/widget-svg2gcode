@@ -1076,18 +1076,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // console.log("is a css width:", $(canvas).css('width'));
                 canvasWidth = parseInt($(canvas).css('width'));
             }
-            canvasWidth = $( window ).width();
+            // canvasWidth = $( window ).width();
             
             var canvasHeight = canvas.height;
             if ($(canvas).css('height')) {
                 // console.log("is a css height:", $(canvas).css('height'));
                 canvasHeight = parseInt($(canvas).css('height'));
             }
-            canvasHeight = $( window ).height();
+            // canvasHeight = $( window ).height();
             
-            var width = $( window ).width();
-            var height = $( window ).height();
-            var widthHalf = width / 2, heightHalf = height / 2;
+            // var width = $( window ).width();
+            // var height = $( window ).height();
+            var widthHalf = canvasWidth / 2, heightHalf = canvasHeight / 2;
             
             //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
             // vector.z = 1;
@@ -1681,6 +1681,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.options.showBody = true;
                 this.saveOptionsLocalStorage();
             }
+            $(window).trigger("resize");
         },
         /**
          * Hide the body of the panel.
@@ -1699,6 +1700,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.options.showBody = false;
                 this.saveOptionsLocalStorage();
             }
+            $(window).trigger("resize");
         },
         /**
          * This method loads the pubsubviewer widget which attaches to our 

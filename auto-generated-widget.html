@@ -17,7 +17,12 @@
 /* CSS for ChiliPeppr Widget */
 
 #com-zipwhip-widget-svg2gcode {
-   
+    
+}
+#com-zipwhip-widget-svg2gcode .panel-body{
+    /*padding:6px 14px;*/
+    max-height:330px;  
+    overflow:auto;
 }
 
 #com-zipwhip-widget-svg2gcode .nav-tabs>li>a {
@@ -141,7 +146,7 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
             });
             
             // hide toolbar for room
-            //$('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
+            $('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
             
             // only init eagle widget once 3d is loaded
             // init my widget
@@ -271,8 +276,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         activate: function() {
             var that = this;
-            cprequire(['ThreeProjector'], function() {
-                console.log("ThreeProjector loaded");
+            // cprequire(['ThreeProjector'], function() {
+                // console.log("ThreeProjector loaded");
                 //setTimeout( that.init3d.bind(that), 500);
                 that.init3d();
                 /*
@@ -287,7 +292,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     }
                 });
                 */
-            });
+            // });
             
         },
         /**
@@ -296,6 +301,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         unactivate: function() {
             this.sceneRemoveMySceneGroup();
             this.sceneDisposeMySceneGroup();
+            // hide floaty menus
+            this.hideFloatItems();
         },
         /**
          * Try to get a reference to the 3D viewer.
@@ -884,18 +891,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * of the imported vector image.
          */
         createFloatItems: function() {
-            console.log("this.obj3dmeta:", this.obj3dmeta); 
-            
-            // we need to attach to the controls onchange event so
-            // if the user moves the 3d viewer around we re-render where
-            // we place the textboxes
-            this.obj3dmeta.widget.controls.addEventListener(
-                'change', this.onCameraChange.bind(this)
-            );
+            console.log("createFloatItems. this.obj3dmeta:", this.obj3dmeta); 
             
             // move width/height textboxes to top of DOM
             // because their absolute positioning requires that
             if (this.isFloatItemsSetup == false) {
+                
+                // we need to attach to the controls onchange event so
+                // if the user moves the 3d viewer around we re-render where
+                // we place the textboxes
+                this.obj3dmeta.widget.controls.addEventListener(
+                    'change', this.onCameraChange.bind(this)
+                );
                 
                 $('.test-info').text("did detach");
                 // move them and
@@ -941,6 +948,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //setTimeout(this.onCameraChange.bind(this), 50);
             this.onCameraChange(); //.bind(this);
             
+        },
+        hideFloatItems: function() {
+            $('#' + this.id + "-widthbox").addClass("hidden");
+            $('#' + this.id + "-heightbox").addClass("hidden");
+            $('#' + this.id + "-alignbox").addClass("hidden");
         },
         onAlignButtonClicked: function(evt) {
             var tEl = $(evt.currentTarget);
@@ -1143,18 +1155,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // console.log("is a css width:", $(canvas).css('width'));
                 canvasWidth = parseInt($(canvas).css('width'));
             }
-            canvasWidth = $( window ).width();
+            // canvasWidth = $( window ).width();
             
             var canvasHeight = canvas.height;
             if ($(canvas).css('height')) {
                 // console.log("is a css height:", $(canvas).css('height'));
                 canvasHeight = parseInt($(canvas).css('height'));
             }
-            canvasHeight = $( window ).height();
+            // canvasHeight = $( window ).height();
             
-            var width = $( window ).width();
-            var height = $( window ).height();
-            var widthHalf = width / 2, heightHalf = height / 2;
+            // var width = $( window ).width();
+            // var height = $( window ).height();
+            var widthHalf = canvasWidth / 2, heightHalf = canvasHeight / 2;
             
             //console.log("canvasWidth:", canvasWidth, "canvasHeight:", canvasHeight);
             // vector.z = 1;
@@ -1585,7 +1597,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 //that.clear3dViewer();
                 //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
                 that.onRender();
-            }, 1500);
+            }, 150);
             //this.onRender();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback
@@ -1748,6 +1760,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.options.showBody = true;
                 this.saveOptionsLocalStorage();
             }
+            $(window).trigger("resize");
+            
         },
         /**
          * Hide the body of the panel.
@@ -1766,6 +1780,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.options.showBody = false;
                 this.saveOptionsLocalStorage();
             }
+            $(window).trigger("resize");
         },
         /**
          * This method loads the pubsubviewer widget which attaches to our 
@@ -1952,9 +1967,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
 
                     <p style="padding-top:10px;">Settings</p>
                     
-                    <button class="btn-test">Gen Test Objects</button>
-                    <span class="test-info"></span>
-                    <button class="btn-arrow">Gen Arrow for X 3D to Screen</button>
+                    <button class="hidden btn-test">Gen Test Objects</button>
+                    <span class="hidden test-info"></span>
+                    <button class="hidden btn-arrow">Gen Arrow for X 3D to Screen</button>
               
                     <!--<div class="form-group" xstyle="padding-left:18px;">-->
                     <!--    <span xstyle="font-size:11px;">Points To Generate Per Path</span>-->
@@ -1983,7 +1998,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                             <span style="font-size:11px;">Point Spacing</span>
                             <div class="input-group">
                                 <input type="number" min="1" max="99" step="1" class="form-control input-dashPercent svg2gcode-cuttype" value="20" placeholder="Height">
-                                <div class="input-group-addon">% of Object Length</div>
+                                <div class="input-group-addon">% of Path Length</div>
                             </div>
                         </div>
                     </div>
@@ -2006,10 +2021,28 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                             <label class="radio-inline">
                                 <input class="svg2gcode-modetype" type="radio" name="com-chilipeppr-widget-svg2gcode-laseron" value="M7"> M7 (Coolant)
                             </label>
+                            <p style="margin-top:3px;margin-bottom:0;font-size:11px;">S Value (M3 PWM Spindle Speed)</p>
+                            <div class="input-group">
+                                <input type="number" min="0" step="1" class="form-control input-svalue" value="1" placeholder="Enter S value">
+                                <div class="input-group-addon">mm</div>
+                            </div>
+                            <p style="margin-top:3px;margin-bottom:0;font-size:11px;">
+                                On TinyG enter $p1 to see PWM settings. Set $p1cpl=0, $p1cph=1, $p1csl=0, 
+                                $p1csh=1 then use 
+                                1 in the box above for 100% power, 0.1 for 10% power, etc.
+                            </p>
+                            
                         </div>
                         <label class="radio-inline">
                             <input class="svg2gcode-modetype" type="radio" name="com-chilipeppr-widget-svg2gcode-mode" value="mill"> Mill
                         </label>
+                        <div class="form-group mode-mill" style="padding-left:20px;margin-bottom:0">
+                            <p style="margin-bottom:0;font-size:11px;">Clearance Height</p>
+                            <div class="input-group">
+                                <input type="number" min="0" step="1" class="form-control input-clearance" value="3" placeholder="Enter clearance height">
+                                <div class="input-group-addon">mm</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group" xstyle="padding-left:18px;">

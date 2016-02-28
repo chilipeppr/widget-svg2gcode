@@ -1525,7 +1525,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 //that.clear3dViewer();
                 //chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
                 that.onRender();
-            }, 1500);
+            }, 150);
             //this.onRender();
         },
         obj3d: null, // gets the 3dviewer obj stored in here on callback

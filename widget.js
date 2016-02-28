@@ -333,24 +333,29 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         onRender: function(callback) {
             
             // remove text3d from the 3d viewer
-            // this.sceneRemoveMySceneGroup();
+            this.sceneRemoveMySceneGroup();
             
             // need this to force garbage collection cuz three.js
             // hangs onto geometry
-            // this.sceneDisposeMySceneGroup();
-            // chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
+            this.sceneDisposeMySceneGroup();
+            chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
                 
-            // this.clear3dViewer();
-            // chilipeppr.publish('/com-chilipeppr-widget-3dviewer/setunits', "mm");
-                
+            this.clear3dViewer();
+            
+            // i am forcing the redraw of the grid/etc cuz if units change then
+            // this stuff needs redrawn. if i had a gcode file loaded in the 3d viewer
+            // it would render everything for inch size, but then when the svg was
+            // loaded in mm mode everything would be crazy small so this solved it.
+            this.obj3dmeta.widget.drawAxesToolAndExtents();
+
             // get the user settings from the UI
             this.getSettings();
             
             var that = this;
             
             // read in the svg text and draw it as three.js object in the 3d viewer
-            //this.drawSvg();
-            setTimeout(this.drawSvg.bind(this), 1000);
+            this.drawSvg();
+            // setTimeout(this.drawSvg.bind(this), 5000);
             //that.generateGcode();
             
             //this.extractSvgPathsFromSVGFile(this.options.svg);
@@ -475,7 +480,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     // turn off laser at end of line
                     isLaserOn = false;
                     if (that.options.laseron == "M3")
-                        g += "M6 (laser off)\n";
+                        g += "M5 (laser off)\n";
                     else
                         g += "M9 (laser off)\n";
                 }
@@ -1059,8 +1064,13 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             console.log("obj3d", this.obj3dmeta, this.obj3d);
         },
         vectorScreen: null,
-        toScreenPosition3: function(pt) {
-            var vector = pt.clone(); //new THREE.Vector3();
+        toScreenPosition: function(object) {
+            
+            this.obj3dmeta.scene.updateMatrixWorld();
+            var vector = new THREE.Vector3();
+            vector.setFromMatrixPosition( object.matrixWorld );
+            //var pt = this.svgParentGroup.localToWorld(object.position.clone());
+            //var vector = pt.clone(); //new THREE.Vector3();
             var canvas = this.obj3dmeta.widget.renderer.domElement;
             
             // figure out width that is hi-dpi resolution independent
@@ -1098,7 +1108,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             return vector;
         },
         // this was from mr. doob and is a tad bit different from above
-        toScreenPosition: function(object) {
+        toScreenPositionMrDoob: function(object) {
             
             console.log("toScreenPosition. object:", object);
             

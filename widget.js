@@ -833,17 +833,17 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // move them and
                 // setup the onchange events
                 $('#' + this.id + "-widthbox")
-                    //.detach().appendTo( "body" )
+                    .detach().appendTo( "body" )
                     .change(this.onWidthChange.bind(this))
                     .removeClass("hidden");
                 $('#' + this.id + "-heightbox")
+                    .detach().appendTo( "body" )
                     .change(this.onHeightChange.bind(this))
                     .removeClass("hidden");
-                    //.detach().appendTo( "body" );
                     // TODO add onchange
                 $('#' + this.id + "-alignbox")
+                    .detach().appendTo( "body" )
                     .removeClass("hidden");
-                    // .detach().appendTo( "body" );
                 this.isFloatItemsSetup = true;
                 
                 // if window resizes, reset the camera and textboxes

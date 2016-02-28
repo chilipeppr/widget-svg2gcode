@@ -1,7 +1,12 @@
 /* CSS for ChiliPeppr Widget */
 
 #com-zipwhip-widget-svg2gcode {
-   
+    
+}
+#com-zipwhip-widget-svg2gcode .panel-body{
+    /*padding:6px 14px;*/
+    max-height:330px;  
+    overflow:auto;
 }
 
 #com-zipwhip-widget-svg2gcode .nav-tabs>li>a {

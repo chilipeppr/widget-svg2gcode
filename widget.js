@@ -74,7 +74,7 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
             });
             
             // hide toolbar for room
-            //$('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
+            $('#com-chilipeppr-widget-3dviewer .panel-heading').addClass("hidden");
             
             // only init eagle widget once 3d is loaded
             // init my widget
@@ -204,8 +204,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         activate: function() {
             var that = this;
-            cprequire(['ThreeProjector'], function() {
-                console.log("ThreeProjector loaded");
+            // cprequire(['ThreeProjector'], function() {
+                // console.log("ThreeProjector loaded");
                 //setTimeout( that.init3d.bind(that), 500);
                 that.init3d();
                 /*
@@ -220,7 +220,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     }
                 });
                 */
-            });
+            // });
             
         },
         /**
@@ -229,6 +229,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
         unactivate: function() {
             this.sceneRemoveMySceneGroup();
             this.sceneDisposeMySceneGroup();
+            // hide floaty menus
+            this.hideFloatItems();
         },
         /**
          * Try to get a reference to the 3D viewer.
@@ -817,18 +819,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * of the imported vector image.
          */
         createFloatItems: function() {
-            console.log("this.obj3dmeta:", this.obj3dmeta); 
-            
-            // we need to attach to the controls onchange event so
-            // if the user moves the 3d viewer around we re-render where
-            // we place the textboxes
-            this.obj3dmeta.widget.controls.addEventListener(
-                'change', this.onCameraChange.bind(this)
-            );
+            console.log("createFloatItems. this.obj3dmeta:", this.obj3dmeta); 
             
             // move width/height textboxes to top of DOM
             // because their absolute positioning requires that
             if (this.isFloatItemsSetup == false) {
+                
+                // we need to attach to the controls onchange event so
+                // if the user moves the 3d viewer around we re-render where
+                // we place the textboxes
+                this.obj3dmeta.widget.controls.addEventListener(
+                    'change', this.onCameraChange.bind(this)
+                );
                 
                 $('.test-info').text("did detach");
                 // move them and
@@ -874,6 +876,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //setTimeout(this.onCameraChange.bind(this), 50);
             this.onCameraChange(); //.bind(this);
             
+        },
+        hideFloatItems: function() {
+            $('#' + this.id + "-widthbox").addClass("hidden");
+            $('#' + this.id + "-heightbox").addClass("hidden");
+            $('#' + this.id + "-alignbox").addClass("hidden");
         },
         onAlignButtonClicked: function(evt) {
             var tEl = $(evt.currentTarget);
@@ -1682,6 +1689,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.saveOptionsLocalStorage();
             }
             $(window).trigger("resize");
+            
         },
         /**
          * Hide the body of the panel.

@@ -861,6 +861,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 
             } else {
                 console.warn("divs already positioned");
+                this.showFloatItems();
             }
             
             // setup width and height values in the textboxes
@@ -876,6 +877,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //setTimeout(this.onCameraChange.bind(this), 50);
             this.onCameraChange(); //.bind(this);
             
+        },
+        showFloatItems: function() {
+            $('#' + this.id + "-widthbox").removeClass("hidden");
+            $('#' + this.id + "-heightbox").removeClass("hidden");
+            $('#' + this.id + "-alignbox").removeClass("hidden");
         },
         hideFloatItems: function() {
             $('#' + this.id + "-widthbox").addClass("hidden");

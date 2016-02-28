@@ -190,6 +190,16 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
     $('title').html(myWidget.name);
     // $('#' + myWidget.id).css('background', 'none');
 
+    // test activate/deactivate
+    var testDeactivate = function() {
+        setTimeout(myWidget.unactivate.bind(myWidget), 5000);
+    }
+    var testReactivate = function() {
+        setTimeout(myWidget.activate.bind(myWidget), 10000);
+    }
+    testDeactivate();
+    testReactivate();
+
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
@@ -933,6 +943,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 
             } else {
                 console.warn("divs already positioned");
+                this.showFloatItems();
             }
             
             // setup width and height values in the textboxes
@@ -948,6 +959,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             //setTimeout(this.onCameraChange.bind(this), 50);
             this.onCameraChange(); //.bind(this);
             
+        },
+        showFloatItems: function() {
+            $('#' + this.id + "-widthbox").removeClass("hidden");
+            $('#' + this.id + "-heightbox").removeClass("hidden");
+            $('#' + this.id + "-alignbox").removeClass("hidden");
         },
         hideFloatItems: function() {
             $('#' + this.id + "-widthbox").addClass("hidden");

@@ -118,6 +118,16 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
     $('title').html(myWidget.name);
     // $('#' + myWidget.id).css('background', 'none');
 
+    // test activate/deactivate
+    var testDeactivate = function() {
+        setTimeout(myWidget.unactivate.bind(myWidget), 5000);
+    }
+    var testReactivate = function() {
+        setTimeout(myWidget.activate.bind(myWidget), 10000);
+    }
+    testDeactivate();
+    testReactivate();
+
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.

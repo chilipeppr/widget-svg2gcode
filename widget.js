@@ -125,8 +125,8 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
     var testReactivate = function() {
         setTimeout(myWidget.activate.bind(myWidget), 7000);
     }
-    testDeactivate();
-    testReactivate();
+    //testDeactivate();
+    // testReactivate();
 
 } /*end_test*/ );
 
@@ -1306,6 +1306,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
           const DIGIT_0 = 48, DIGIT_9 = 57, COMMA = 44, SPACE = 32, PERIOD = 46,
               MINUS = 45;
         
+          var DEGS_TO_RADS = Math.PI / 180;
+          
           var path = new THREE.Shape();
           
           // this is an array that if there is only one shape, meaning
@@ -1491,14 +1493,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 x = nx; y = ny;
                 break;
                 // - elliptical arc
+              case 'a':
+                  // TODO make relative?
+                  nx = x + eatNum();
+                  ny = y + eatNum();
               case 'A':
                 rx = eatNum();
                 ry = eatNum();
                 xar = eatNum() * DEGS_TO_RADS;
                 laf = eatNum();
                 sf = eatNum();
-                nx = eatNum();
-                ny = eatNum();
+                if (activeCmd == 'A') nx = eatNum();
+                if (activeCmd == 'A') ny = eatNum();
                 if (rx !== ry) {
                   console.warn("Forcing elliptical arc to be a circular one :(",
                                rx, ry);

@@ -22,7 +22,7 @@
 #com-zipwhip-widget-svg2gcode .panel-body{
     /*padding:6px 14px;*/
     max-height:330px;  
-    overflow:auto;
+    overflow-y:auto;
 }
 
 #com-zipwhip-widget-svg2gcode .nav-tabs>li>a {
@@ -197,8 +197,8 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
     var testReactivate = function() {
         setTimeout(myWidget.activate.bind(myWidget), 7000);
     }
-    testDeactivate();
-    testReactivate();
+    //testDeactivate();
+    // testReactivate();
 
 } /*end_test*/ );
 
@@ -1365,12 +1365,21 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // cleanup
             pathStr = pathStr.replace(/[\r\n]/g, " ");
             pathStr = pathStr.replace(/\s+/g, " ");
+            
+            // clean up scientific notation
+            //pathStr = pathStr.replace(/\b([+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?)\b/ig, parseFloat(RegExp.$1).toFixed(4));
+            if (pathStr.match(/\b([+\-\d]+e[+\-\d]+)\b/i)) {
+                console.warn("found scientific notation. $1", RegExp.$1);
+                pathStr = pathStr.replace(/\b([+\-\d]+e[+\-\d]+)\b/ig, parseFloat(RegExp.$1).toFixed(4));
+            }
             console.log("pathStr:", pathStr);
             
         
           const DIGIT_0 = 48, DIGIT_9 = 57, COMMA = 44, SPACE = 32, PERIOD = 46,
               MINUS = 45;
         
+          var DEGS_TO_RADS = Math.PI / 180;
+          
           var path = new THREE.Shape();
           
           // this is an array that if there is only one shape, meaning
@@ -1556,14 +1565,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 x = nx; y = ny;
                 break;
                 // - elliptical arc
+              case 'a':
+                  // TODO make relative?
+                  nx = x + eatNum();
+                  ny = y + eatNum();
               case 'A':
                 rx = eatNum();
                 ry = eatNum();
                 xar = eatNum() * DEGS_TO_RADS;
                 laf = eatNum();
                 sf = eatNum();
-                nx = eatNum();
-                ny = eatNum();
+                if (activeCmd == 'A') nx = eatNum();
+                if (activeCmd == 'A') ny = eatNum();
                 if (rx !== ry) {
                   console.warn("Forcing elliptical arc to be a circular one :(",
                                rx, ry);

@@ -245,6 +245,22 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // hide floaty menus
             this.hideFloatItems();
         },
+        callbackForWorkspaceToShowUs: null,
+        /**
+         * The workspace should call this so we can ask it to show us. This is
+         * needed so if a file is dragged in that is SVG we can say to the workspace
+         * we'll handle it and that our widget should get shown.
+         */
+        setCallbackForWorkspaceToShowUs: function(callback) {
+            this.callbackForWorkspaceToShowUs = callback;
+        },
+        /**
+         * This is called by any method in this widget if it wants the parent workspace
+         * to show us. This would typically be called from onDropped.
+         */
+        askWorkspaceToShowUs: function() {
+            this.callbackForWorkspaceToShowUs();
+        },
         /**
          * Try to get a reference to the 3D viewer.
          */
@@ -1581,7 +1597,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          * File drag/drop method that gets triggered after user drops file onto browser.
          */
         onDropped: function (data, info) {
-            console.log("onDropped. len of file:", data.length, "info:", info, "this:", this);
+            console.log("svg2gcode onDropped. len of file:", data.length, "info:", info, "this:", this);
             
             if (info && 'name' in info && info.name.match(/.svg$/i)) {
                 // this looks like an SVG file

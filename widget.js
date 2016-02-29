@@ -123,7 +123,7 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
         setTimeout(myWidget.unactivate.bind(myWidget), 5000);
     }
     var testReactivate = function() {
-        setTimeout(myWidget.activate.bind(myWidget), 10000);
+        setTimeout(myWidget.activate.bind(myWidget), 7000);
     }
     testDeactivate();
     testReactivate();
@@ -206,6 +206,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.forkSetup();
 
             if (callback) callback();
+            
+            // store original svg
+            this.setupExampleSvg();
 
             console.log("I am done being initted.");
         },
@@ -274,6 +277,17 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             }
 
         },
+        originalSvg: null,
+        setupExampleSvg: function() {
+            // grab a copy of the original svg to make as the example file
+            this.originalSvg = $('#' + this.id + ' .input-svg').val();
+            var that = this;
+            $('#' + this.id + ' .load-logo').click(function() {
+                console.log("got click on load logo");
+                $('#' + that.id + ' .input-svg').val(that.originalSvg).trigger('change');
+                
+            })
+        },
         /**
          * Call this method from init to setup all the buttons when this widget
          * is first loaded. This basically attaches click events to your 
@@ -315,7 +329,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + ' .svg2gcode-cuttype').change(this.onChange.bind(this));
             
             // input that just changes gcode, but doesn't have to re-render the svg from scratch
-            $('#' + this.id + ' .svg2gcode-modetype').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .svg2gcode-modetype').change(this.onModeTypeChange.bind(this));
+            $('#' + this.id + ' .input-svalue').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .input-clearance').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .input-depthcut').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .input-feedrateplunge').change(this.generateGcode.bind(this));
             $('#' + this.id + ' .input-feedrate').change(this.generateGcode.bind(this));
             
             $('#' + this.id + ' .btn-sendgcodetows').click(this.sendGcodeToWorkspace.bind(this));
@@ -352,6 +370,17 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 
             }
         },
+        onModeTypeChange: function() {
+            this.getSettings();
+            if (this.options.mode == "laser") {
+                 $('#' + this.id + ' .mode-laser').removeClass("hidden");
+                 $('#' + this.id + ' .mode-mill').addClass("hidden");
+            } else {
+                 $('#' + this.id + ' .mode-laser').addClass("hidden");
+                 $('#' + this.id + ' .mode-mill').removeClass("hidden");
+            } 
+            this.generateGcode();
+        },
         onRender: function(callback) {
                 
             this.clear3dViewer();
@@ -386,17 +415,16 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.options["dashPercent"] = $('#' + this.id + ' .input-dashPercent').val();
             this.options["mode"] = $('#' + this.id + ' input[name=com-chilipeppr-widget-svg2gcode-mode]:checked').val();
             this.options["laseron"] = $('#' + this.id + ' input[name=com-chilipeppr-widget-svg2gcode-laseron]:checked').val();
+            this.options["lasersvalue"] = $('#' + this.id + ' .input-svalue').val();
+            this.options["millclearanceheight"] = parseFloat($('#' + this.id + ' .input-clearance').val());
+            this.options["milldepthcut"] = parseFloat($('#' + this.id + ' .input-depthcut').val());
+            this.options["millfeedrateplunge"] = $('#' + this.id + ' .input-feedrateplunge').val();
             this.options["feedrate"] = $('#' + this.id + ' .input-feedrate').val();
             console.log("settings:", this.options);    
             
-            if (this.options.mode == "laser") {
-                 $('#' + this.id + ' .mode-laser').removeClass("hidden");
-                 
-            } else {
-                $('#' + this.id + ' .mode-laser').addClass("hidden");
-            }
             
-            //this.saveOptionsLocalStorage();
+            
+            this.saveOptionsLocalStorage();
         },
         generateGcodeTimeoutPtr: null,
         isGcodeInRegeneratingState: false,
@@ -448,6 +476,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
 
             var that = this;
             var isLaserOn = false;
+            var isAtClearanceHeight = false;
             var isFeedrateSpecifiedAlready = false;
             txtGrp.traverse( function(child) {
                 if (child.type == "Line") {
@@ -456,18 +485,56 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                         var localPt = child.geometry.vertices[i];
                         var worldPt = grp.localToWorld(localPt.clone());
                         if (i == 0) {
-                            // first point in line where we start lasering
-                            // move to poing
+                            // first point in line where we start lasering/milling
+                            // move to point
+                            
+                            // if milling, we need to move to clearance height
+                            if (that.options.mode == "mill") {
+                                if (!isAtClearanceHeight) {
+                                    g += "G0 Z" + that.options.millclearanceheight + "\n";
+                                }
+                            }
+                            
+                            // move to start point
                             g += "G0 X" + worldPt.x.toFixed(3) + 
                                 " Y" + worldPt.y.toFixed(3) + "\n";
-                            // set feedrate for subsequent G1 moves
-                            //g += "F" + that.options.feedrate + "\n";
+                            
+                            // if milling move back to depth cut
+                            if (that.options.mode == "mill") {
+                                var halfDistance = (that.options.millclearanceheight - that.options.milldepthcut) / 2;
+                                g += "G0 Z" + (that.options.millclearanceheight - halfDistance).toFixed(3)
+                                    + "\n";
+                                g += "G1 F" + that.options.millfeedrateplunge + 
+                                    " Z" + that.options.milldepthcut + "\n";
+                                isAtClearanceHeight = false;
+                            }
+                            
                         }
                         else {
-                            if (!isLaserOn) {
-                                g += that.options.laseron + " (laser on)\n";
-                                isLaserOn = true;
+                            
+                            // we are in a non-first line so this is normal moving
+                            
+                            // see if laser or milling
+                            if (that.options.mode == "laser") {
+                                
+                                // if the laser is not on, we need to turn it on
+                                if (!isLaserOn) {
+                                    if (that.options.laseron == "M3") {
+                                        g += "M3 S" + that.options.lasersvalue;
+                                    } else {
+                                        g += that.options.laseron;
+                                    }
+                                    g += " (laser on)\n";
+                                    isLaserOn = true;
+                                }
+                            } else {
+                                // this is milling. if we are not at depth cut
+                                // we need to get there
+                                
+                                
                             }
+                            
+                            // do normal feedrate move
                             var feedrate;
                             if (isFeedrateSpecifiedAlready) {
                                 feedrate = "";
@@ -485,12 +552,19 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                     // if there is one
                     isFeedrateSpecifiedAlready = false;
                     
-                    // turn off laser at end of line
-                    isLaserOn = false;
-                    if (that.options.laseron == "M3")
-                        g += "M5 (laser off)\n";
-                    else
-                        g += "M9 (laser off)\n";
+                    // see if laser or milling
+                    if (that.options.mode == "laser") {
+                        // turn off laser at end of line
+                        isLaserOn = false;
+                        if (that.options.laseron == "M3")
+                            g += "M5 (laser off)\n";
+                        else
+                            g += "M9 (laser off)\n";
+                    } else {
+                        // milling. move back to clearance height
+                        g += "G0 Z" + that.options.millclearanceheight + "\n";
+                        isAtClearanceHeight = true;
+                    }
                 }
             });
             
@@ -869,6 +943,10 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 // setup align buttons
                 $('#' + this.id + "-alignbox button").click(this.onAlignButtonClicked.bind(this));
                 
+                // setup xy value changes
+                $('#' + this.id + "-alignbox .input-x").on("change", this.onXYChange.bind(this));
+                $('#' + this.id + "-alignbox .input-y").on("change", this.onXYChange.bind(this));
+            
             } else {
                 console.warn("divs already positioned");
                 this.showFloatItems();
@@ -997,6 +1075,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // calc new width since we have aspect ratio locked
             var w = this.originalBbox.width * hScale;
             $('#' + this.id + "-widthbox .input-widthbox").val(w.toFixed(3));
+            
+            // wake the 3d viewer just in case
+            this.obj3dmeta.widget.wakeAnimate();
+
+            this.onCameraChange(); //.bind(this);
+            this.generateGcode();
+        },
+        onXYChange: function(evt) {
+            console.log("onXYChange. evt:", evt);
+            
+            this.svgParentGroup.position.x = $('#' + this.id + "-alignbox .input-x").val();
+            this.svgParentGroup.position.y = $('#' + this.id + "-alignbox .input-y").val();
             
             // wake the 3d viewer just in case
             this.obj3dmeta.widget.wakeAnimate();

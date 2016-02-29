@@ -6,7 +6,7 @@
 #com-zipwhip-widget-svg2gcode .panel-body{
     /*padding:6px 14px;*/
     max-height:330px;  
-    overflow:auto;
+    overflow-y:auto;
 }
 
 #com-zipwhip-widget-svg2gcode .nav-tabs>li>a {

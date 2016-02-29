@@ -1293,6 +1293,13 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             // cleanup
             pathStr = pathStr.replace(/[\r\n]/g, " ");
             pathStr = pathStr.replace(/\s+/g, " ");
+            
+            // clean up scientific notation
+            //pathStr = pathStr.replace(/\b([+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?)\b/ig, parseFloat(RegExp.$1).toFixed(4));
+            if (pathStr.match(/\b([+\-\d]+e[+\-\d]+)\b/i)) {
+                console.warn("found scientific notation. $1", RegExp.$1);
+                pathStr = pathStr.replace(/\b([+\-\d]+e[+\-\d]+)\b/ig, parseFloat(RegExp.$1).toFixed(4));
+            }
             console.log("pathStr:", pathStr);
             
         

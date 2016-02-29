@@ -976,6 +976,8 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.originalBbox = bbox;
             $('#' + this.id + "-widthbox .input-widthbox").val(bbox.width.toFixed(3));
             $('#' + this.id + "-heightbox .input-heightbox").val(bbox.height.toFixed(3));
+            $('#' + this.id + "-alignbox .input-x").val("0");
+            $('#' + this.id + "-alignbox .input-y").val("0");
             
             // we now need to reposition our textboxes as if the camera was moved
             //setTimeout(this.onCameraChange.bind(this), 50);
@@ -1288,6 +1290,12 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         transformSVGPath: function(pathStr) {
         
+            // cleanup
+            pathStr = pathStr.replace(/[\r\n]/g, " ");
+            pathStr = pathStr.replace(/\s+/g, " ");
+            console.log("pathStr:", pathStr);
+            
+        
           const DIGIT_0 = 48, DIGIT_9 = 57, COMMA = 44, SPACE = 32, PERIOD = 46,
               MINUS = 45;
         
@@ -1530,7 +1538,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 y = ny;
                 break;
               default:
-                throw new Error("weird path command: " + activeCmd);
+                throw new Error("weird path command: \"" + activeCmd + "\"");
             }
             if (firstX === null) {
               firstX = x;

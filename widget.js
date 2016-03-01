@@ -351,6 +351,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + ' .input-depthcut').change(this.generateGcode.bind(this));
             $('#' + this.id + ' .input-feedrateplunge').change(this.generateGcode.bind(this));
             $('#' + this.id + ' .input-feedrate').change(this.generateGcode.bind(this));
+            $('#' + this.id + ' .input-inflate').change(this.onInflateChange.bind(this));
             
             $('#' + this.id + ' .btn-sendgcodetows').click(this.sendGcodeToWorkspace.bind(this));
             
@@ -435,12 +436,26 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.options["millclearanceheight"] = parseFloat($('#' + this.id + ' .input-clearance').val());
             this.options["milldepthcut"] = parseFloat($('#' + this.id + ' .input-depthcut').val());
             this.options["millfeedrateplunge"] = $('#' + this.id + ' .input-feedrateplunge').val();
+            this.options["inflate"] = $('#' + this.id + ' .input-inflate').val();
             this.options["feedrate"] = $('#' + this.id + ' .input-feedrate').val();
             console.log("settings:", this.options);    
             
             
             
             this.saveOptionsLocalStorage();
+        },
+        /**
+         * Called when user changes inflate value.
+         */
+        onInflateChange: function(evt) {
+            console.log("onInflateChange. evt:");
+            
+            this.getSettings();
+            
+            if (this.options.inflate != 0) {
+                console.log("user wants to inflate");
+                
+            }
         },
         generateGcodeTimeoutPtr: null,
         isGcodeInRegeneratingState: false,

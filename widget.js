@@ -1,4 +1,4 @@
-/* global requirejs cprequire cpdefine chilipeppr THREE */
+/* global requirejs cprequire cpdefine chilipeppr THREE ClipperLib */
 // Defining the globals above helps Cloud9 not show warnings for those variables
 
 // ChiliPeppr Widget/Element Javascript
@@ -30,7 +30,7 @@ requirejs.config({
         Snap: '//i2dcui.appspot.com/slingshot?url=http://snapsvg.io/assets/js/snap.svg-min.js',
         //Snap: '//i2dcui.appspot.com/slingshot?url=https://raw.githubusercontent.com/adobe-webplatform/Snap.svg/master/src/svg.js'
         ThreeProjector: '//i2dcui.appspot.com/geturl?url=http://threejs.org/examples/js/renderers/Projector.js',
-        
+        Clipper: '//i2dcui.appspot.com/js/clipper/clipper_unminified'
     },
     shim: {
         // See require.js docs for how to define dependencies that
@@ -131,7 +131,7 @@ cprequire_test(["inline:com-zipwhip-widget-svg2gcode"], function(myWidget) {
 } /*end_test*/ );
 
 // This is the main definition of your widget. Give it a unique name.
-cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], function() {
+cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Clipper" ], function() {
     return {
         /**
          * The ID of the widget. You must define this and make it unique.
@@ -436,11 +436,9 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             this.options["millclearanceheight"] = parseFloat($('#' + this.id + ' .input-clearance').val());
             this.options["milldepthcut"] = parseFloat($('#' + this.id + ' .input-depthcut').val());
             this.options["millfeedrateplunge"] = $('#' + this.id + ' .input-feedrateplunge').val();
-            this.options["inflate"] = $('#' + this.id + ' .input-inflate').val();
+            this.options["inflate"] = parseFloat($('#' + this.id + ' .input-inflate').val());
             this.options["feedrate"] = $('#' + this.id + ' .input-feedrate').val();
-            console.log("settings:", this.options);    
-            
-            
+            //console.log("settings:", this.options);    
             
             this.saveOptionsLocalStorage();
         },
@@ -452,10 +450,289 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             
             this.getSettings();
             
+            if (this.inflateGrp) this.svgGroup.remove(this.inflateGrp);
+            
             if (this.options.inflate != 0) {
-                console.log("user wants to inflate");
+                console.log("user wants to inflate. val:", this.options.inflate);
                 
+                // save the original path and make a new one so we can go back to the original
+                if (!('svgGroupOriginal' in this)) {
+                    console.log("creating original store");
+                    // no original stored yet
+                    this.svgParentGroupOriginal = this.svgParentGroup;
+                    this.svgGroupOriginal = this.svgGroup;
+                } else {
+                    console.log("restoring original");
+                    // restore original
+                    this.svgParentGroup = this.svgParentGroupOriginal;
+                    this.svgGroup = this.svgGroupOriginal;
+                }
+
+                var grp = this.svgGroup;
+                
+                var clipperPaths = [];
+                
+                var that = this;
+                grp.traverse( function(child) {
+                    
+                    if (child.name == "inflatedGroup") {
+                        console.log("this is the inflated path from a previous run. ignore.");
+                        return;
+                    }
+                    else if (child.type == "Line") {
+                        
+                        // let's inflate the path for this line. it may not be closed
+                        // so we need to check that.
+                        
+                        //var threeObj = that.inflateThreeJsLineShape(child, that.options.inflate);
+                        var clipperPath = that.threeJsVectorArrayToClipperArray(child.geometry.vertices);
+                        clipperPaths.push(clipperPath);
+                        
+                        // hide for now. we can unhide later if we reset.
+                        //child.visible = false;
+                        child.material.color = 0x000000;
+                        child.material.transparent = true;
+                        child.material.opacity = 0.2;
+                        
+                        // for now add to existing object
+                        // eventually replace it
+                        //grp.add(threeObj);
+                    } 
+                    else if (child.type == "Points") {
+                        child.visible = false;
+                    } 
+                    else {
+                        console.log("type of ", child.type, " being skipped");
+                    }
+                });
+                
+                console.log("clipperPaths:", clipperPaths);
+                
+                // simplify this set of paths which is a very powerful Clipper call that
+                // figures out holes and path orientations
+                var newClipperPaths = this.simplifyPolygons(clipperPaths);
+                
+                // get the inflated/deflated path
+                var inflatedPaths = this.getInflatePath(newClipperPaths, this.options.inflate);
+                
+                // we now have a huge array of clipper paths
+                console.log("newClipperPaths:", newClipperPaths);
+                this.inflateGrp = this.drawClipperPaths(inflatedPaths, 0x0000ff, 0.99, 0.01, 0, true, false, "inflatedGroup");
+                //threeObj.name = "inflatedGroup";
+                
+                //this.svgParentGroup.remove(this.svgGroup);
+                //this.svgParentGroup.add(threeObj);
+                this.svgGroup.add(this.inflateGrp);
+                
+                //grp.add(threeObj);
+                
+                this.wakeAnimate();
             }
+        },
+        simplifyPolygons: function(paths) {
+            
+            var scale = 10000;
+            ClipperLib.JS.ScaleUpPaths(paths, scale);
+            
+            var newClipperPaths = ClipperLib.Clipper.SimplifyPolygons(paths, ClipperLib.PolyFillType.pftEvenOdd);
+            
+            // scale back down
+            ClipperLib.JS.ScaleDownPaths(newClipperPaths, scale);
+            ClipperLib.JS.ScaleDownPaths(paths, scale);
+            return newClipperPaths;
+            
+                
+        },
+        drawClipperPaths: function (paths, color, opacity, z, zstep, isClosed, isAddDirHelper, name) {
+            console.log("drawClipperPaths");
+            var lineUnionMat = new THREE.LineBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: opacity
+            });
+
+            if (z === undefined || z == null)
+                z = 0;
+
+            if (zstep === undefined || zstep == null)
+                zstep = 0;
+
+            if (isClosed === undefined || isClosed == null)
+                isClosed = true;
+            
+            var group = new THREE.Object3D();
+            if (name) group.name = name;
+
+            for (var i = 0; i < paths.length; i++) {
+                var lineUnionGeo = new THREE.Geometry();
+                for (var j = 0; j < paths[i].length; j++) {
+                    var actualZ = z;
+                    if (zstep != 0) actualZ += zstep * j;
+                    lineUnionGeo.vertices.push(new THREE.Vector3(paths[i][j].X, paths[i][j].Y, actualZ));
+                    
+                    // does user want arrow helper to show direction
+                    if (isAddDirHelper) {
+                        /*
+                        var pt = { X: paths[i][j].X, Y: paths[i][j].Y, Z: actualZ };
+                        var ptNext;
+                        if (j + 1 >= paths[i].length)
+                            ptNext = {X: paths[i][0].X, Y: paths[i][0].Y, Z: actualZ };
+                        else
+                            ptNext = {X: paths[i][j+1].X, Y: paths[i][j+1].Y, Z: actualZ };
+                        // x2-x1,y2-y1
+                        var dir = new THREE.Vector3( ptNext.X - pt.X, ptNext.Y - pt.Y, ptNext.Z - pt.Z );
+                        var origin = new THREE.Vector3( pt.X, pt.Y, pt.Z );
+                        var length = 0.1;
+                        var hex = 0xff0000;
+                        
+                        var arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+                        group.add( arrowHelper );
+                        */
+                    }
+                }
+                // close it by connecting last point to 1st point
+                if (isClosed) lineUnionGeo.vertices.push(new THREE.Vector3(paths[i][0].X, paths[i][0].Y, z));
+
+
+                var lineUnion = new THREE.Line(lineUnionGeo, lineUnionMat);
+                if (name) lineUnion.name = name;
+                
+                //lineUnion.position.set(0,-20,0);
+                group.add(lineUnion);
+            }
+            //this.sceneAdd(group);
+            return group;
+        },
+        /**
+         * Pass in a THREE.Line that is closed, meaning it was from a real shape and the end point
+         * equals the start point because Clipper requires that. Make sure the
+         * holes have a userData value of threeLine.userData.isHole = true so we know to deflate those
+         * instead of inflate. To inflate by 3mm
+         * have delta = 3. You can also set delta to a negative number to deflate.
+         * We will return a new THREE.Line object or if multiple paths end up getting created
+         * we will return a new THREE.Group() containing THREE.Line objects.
+         */
+        inflateThreeJsLineShape: function(threeLine, delta) {
+            // debugger;
+            console.log("inflateThreeJsLineShape. threeLine:", threeLine, "delta:", delta);
+            
+            // convert Vector3 array to Clipper array
+            var clipperPath = this.threeJsVectorArrayToClipperArray(threeLine.geometry.vertices);
+            
+            // double check there are points in array
+            if (clipperPath.length == 0) {
+                console.error("You did not pass in a THREE.Line that had any vertices. Huh?");
+            }
+            
+            // double check that end point equals start point
+            if (clipperPath[0].X != clipperPath[clipperPath.length-1].X &&
+            clipperPath[0].Y != clipperPath[clipperPath.length-1].Y) {
+                console.error("Your start and end points do not match, so this is not a closed path therefore you cannot inflate it. Please close the path first.");
+            }
+
+            // check winding order
+            var orientation = ClipperLib.Clipper.Orientation(clipperPath);
+            console.log("orientation:", orientation);
+            
+            // check if hole
+            var isHole = false;
+            if (threeLine.userData.isHole) {
+                isHole = true;
+                delta = -1 * delta;
+            } else {
+                // it's not a hole
+                if (orientation == true) {
+                    // the winding order is correct
+                } else {
+                    // reverse it for correct winding order
+                    clipperPath.reverse();
+                }
+            }
+            var orientation = ClipperLib.Clipper.Orientation(clipperPath);
+            console.log("orientation:", orientation);
+            
+            // get inflate path. we will get back possibly multiple paths because an inflate
+            // or deflate can create dangling holes, etc.
+            var inflatedPaths = this.getInflatePath([clipperPath], delta);
+            
+            var retObj;
+            
+            if (inflatedPaths.length == 1) {
+                
+                // we only got one path back. cool.
+                var newThreeLine = threeLine.clone();
+                newThreeLine.geometry.vertices = this.clipperArrayToThreeJsVectorArray(inflatedPaths[0]);
+                newThreeLine.geometry.verticesNeedUpdate = true;
+                retObj = newThreeLine;
+                
+            } else {
+                
+                var newGroup = new THREE.Group();
+                
+                // loop thru returned paths
+                for (var i in inflatedPaths) {
+                    var inflatedPath = inflatedPaths[i];
+                    
+                    // convert back to THREE.Line
+                    var newThreeLine = threeLine.clone();
+                    newThreeLine.geometry.vertices = this.clipperArrayToThreeJsVectorArray(inflatedPath);
+                    newGroup.add(newThreeLine);
+                }
+                
+                retObj = newGroup;
+            }
+            
+            return retObj;
+            
+        },
+        /**
+         * Pass in something like geometry.vertices which is an array of Vector3's and
+         * this method will pass back an array with Clipper formatting of [{X:nnn, Y:nnn}].
+         */
+        threeJsVectorArrayToClipperArray: function(threeJsVectorArray) {
+            var clipperArr = [];
+            for (var i in threeJsVectorArray) {
+                var pt = threeJsVectorArray[i];
+                clipperArr.push({X: pt.x, Y: pt.y});
+            }
+            return clipperArr;
+        },
+        /**
+         * Pass in an array with Clipper formatting of [{X:nnn, Y:nnn}]. We will pass back
+         * an array of Vector3's so you can set it to your geometry.vertices.
+         */
+        clipperArrayToThreeJsVectorArray: function(clipperArr) {
+            var threeJsVectorArray = [];
+            for (var i in clipperArr) {
+                var pt = clipperArr[i];
+                threeJsVectorArray.push(new THREE.Vector3(pt.X, pt.Y, 0));
+            }
+            return threeJsVectorArray;
+        },
+        /**
+         * Pass in an array of an array of paths or holes. For example, pass in
+         * paths = [[{X:0, Y:0}, {X:10:Y0}, {X:10, Y:10}, {X:0, Y:0}]. Your path must
+         * be closed so the end point must equal the start point. To inflate by 3mm
+         * have delta = 3. You can also set delta to a negative number to deflate. Make
+         * sure the winding order is correct as well.
+         */
+        getInflatePath: function (paths, delta, joinType) {
+            var scale = 10000;
+            ClipperLib.JS.ScaleUpPaths(paths, scale);
+            var miterLimit = 2;
+            var arcTolerance = 10;
+            joinType = joinType ? joinType : ClipperLib.JoinType.jtRound
+            var co = new ClipperLib.ClipperOffset(miterLimit, arcTolerance);
+            co.AddPaths(paths, joinType, ClipperLib.EndType.etClosedPolygon);
+            //var delta = 0.0625; // 1/16 inch endmill
+            var offsetted_paths = new ClipperLib.Paths();
+            co.Execute(offsetted_paths, delta * scale);
+
+            // scale back down
+            ClipperLib.JS.ScaleDownPaths(offsetted_paths, scale);
+            ClipperLib.JS.ScaleDownPaths(paths, scale);
+            return offsetted_paths;
+
         },
         generateGcodeTimeoutPtr: null,
         isGcodeInRegeneratingState: false,
@@ -622,6 +899,26 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
          */
         svgGroup: null,
         /**
+         * Contains the original path from SVG file. This is like layer 1 of the rendering.
+         */
+        svgPath: null,
+        /**
+         * Contains the inflated/deflated path. This is like layer 2 of the rendering. If no
+         * inflate/deflate was asked for by user, this path is still generated but at 0 inflate.
+         */
+        svgInflatePath: null,
+        /**
+         * Contains the dashed/solid path which is generated from svgInflatePath. This is like
+         * layer 3 of the rendering. Solid is the default, so if no inflate or dash then this path
+         * is like a copy of the original svgPath.
+         */
+        svgSolidDashPath: null,
+        /**
+         * Contains the toolpath path if user is doing milling and wants to move the path to a
+         * different Z layer. This is like layer 4 of the rendering.
+         */
+        svgToolPath: null,
+        /**
          * Contains the particle we map the width textbox 3d to 2d screen projection.
          */
         widthParticle: null,
@@ -692,6 +989,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             $('#' + this.id + " .error-flattened").addClass("hidden");
 
             var svgGroup = new THREE.Group();
+            svgGroup.name = "svgpath";
             
             var that = this;
             
@@ -1706,6 +2004,11 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
                 this.userCallbackForGet3dObj = null;
             }
         },
+        wakeAnimate: function() {
+            // this wakes up the 3d viewer to start rendering again. remeber this takes cpu cycles
+            // so the 3d viewer goes to sleep after 3 seconds
+            chilipeppr.publish("/com-chilipeppr-widget-3dviewer/wakeanimate");
+        },
         is3dViewerReady: false,
         clear3dViewer: function () {
             console.log("clearing 3d viewer");
@@ -1825,7 +2128,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap" ], f
             var options = this.options;
 
             var optionsStr = JSON.stringify(options);
-            console.log("saving options:", options, "json.stringify:", optionsStr);
+            //console.log("saving options:", options, "json.stringify:", optionsStr);
             // store settings to localStorage
             localStorage.setItem(this.id + '-options', optionsStr);
         },

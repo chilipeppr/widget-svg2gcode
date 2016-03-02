@@ -62,7 +62,7 @@
             <ul class="nav nav-tabs" role="tablist">
                 <li class="active"><a href="#com-zipwhip-widget-svg2gcode-tab1" role="tab" data-toggle="tab">Render</a>
                 </li>
-                <li><a href="#com-zipwhip-widget-svg2gcode-tab2" role="tab" data-toggle="tab">Gcode</a></li>
+                <li class="xactive"><a href="#com-zipwhip-widget-svg2gcode-tab2" role="tab" data-toggle="tab">Gcode</a></li>
                 <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab3" role="tab" data-toggle="tab">Dispenser</a></li>-->
                 <!--<li><a href="#com-zipwhip-widget-svg2gcode-tab4" role="tab" data-toggle="tab">Laser</a></li>-->
             </ul>
@@ -218,6 +218,14 @@
 
                     <p style="padding-top:10px;">Settings</p>
                     
+                    <div class="form-group" xstyle="padding-left:18px;">
+                        <span xstyle="font-size:11px;">Inflate/Deflate Path</span>
+                        <div class="input-group">
+                            <input type="number" step="1" class="form-control input-inflate" value="0" placeholder="Enter inflate/deflate value">
+                            <div class="input-group-addon">mm</div>
+                        </div>
+                    </div>
+
                     <button class="hidden btn-test">Gen Test Objects</button>
                     <span class="hidden test-info"></span>
                     <button class="hidden btn-arrow">Gen Arrow for X 3D to Screen</button>
@@ -257,7 +265,7 @@
                 </div>
 
                 <!-- Tab 2 -->
-                <div class="tab-pane" id="com-zipwhip-widget-svg2gcode-tab2">
+                <div class="tab-pane xactive" id="com-zipwhip-widget-svg2gcode-tab2">
 
                     <div class="form-group">
                         <p style="margin-bottom:0">Mode</p>
@@ -315,14 +323,6 @@
                         </div>
                     </div>
                     
-                    <div class="form-group" xstyle="padding-left:18px;">
-                        <span xstyle="font-size:11px;">Inflate/Deflate Path</span>
-                        <div class="input-group">
-                            <input type="number" step="1" class="form-control input-inflate" value="0" placeholder="Enter inflate/deflate value">
-                            <div class="input-group-addon">mm</div>
-                        </div>
-                    </div>
-
                     <p style="margin-top:10px;margin-bottom:2px;">Gcode <span class="regenerate" style="font-size:11px;color:red;">Needs re-generated</span>
                     <span class="gcode-size-span hidden"><span class="gcode-size" style="font-size:11px;color:blue;">88Kb</span></span></p>
                     <button style="margin-bottom:4px;" type="button" class="btn btn-default btn-sendgcodetows">Send Gcode to Workspace</button>

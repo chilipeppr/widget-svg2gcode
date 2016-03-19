@@ -792,6 +792,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
                     for (var i in child.geometry.vertices) {
                         var localPt = child.geometry.vertices[i];
                         var worldPt = grp.localToWorld(localPt.clone());
+                        
                         if (i == 0) {
                             // first point in line where we start lasering/milling
                             // move to point

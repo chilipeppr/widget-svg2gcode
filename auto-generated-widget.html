@@ -864,6 +864,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
                     for (var i in child.geometry.vertices) {
                         var localPt = child.geometry.vertices[i];
                         var worldPt = grp.localToWorld(localPt.clone());
+                        
                         if (i == 0) {
                             // first point in line where we start lasering/milling
                             // move to point
@@ -2540,7 +2541,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
                                 </div>
                                 <p style="margin-top:3px;margin-bottom:0;font-size:11px;">
                                     On TinyG enter $p1 to see PWM settings. Set $p1cpl=0, $p1cph=1, $p1csl=0, 
-                                    $p1csh=1 then use 
+                                    $p1csh=1, $p1pof=0 then use 
                                     1 in the box above for 100% power, 0.1 for 10% power, etc.
                                 </p>
                             </div>

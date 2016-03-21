@@ -691,7 +691,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
          */
         threeJsVectorArrayToClipperArray: function(threeJsVectorArray) {
             var clipperArr = [];
-            for (var i in threeJsVectorArray) {
+              for (i = 0; i < threeJsVectorArray.length; i++) {
                 var pt = threeJsVectorArray[i];
                 clipperArr.push({X: pt.x, Y: pt.y});
             }
@@ -789,7 +789,7 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
             txtGrp.traverse( function(child) {
                 if (child.type == "Line") {
                     // let's create gcode for all points in line
-                    for (var i in child.geometry.vertices) {
+                    for (i = 0; i < child.geometry.vertices.length; i++) {
                         var localPt = child.geometry.vertices[i];
                         var worldPt = grp.localToWorld(localPt.clone());
                         

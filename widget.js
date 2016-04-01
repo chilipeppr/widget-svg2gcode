@@ -399,7 +399,18 @@ cpdefine("inline:com-zipwhip-widget-svg2gcode", ["chilipeppr_ready", "Snap", "Cl
             this.generateGcode();
         },
         onRender: function(callback) {
-                
+            
+            // make sure we have all the 3d viewer pointers correctly received back
+            // from 3d viewer. we may not have them based on loading order.
+            if (this.obj3d && this.obj3dmeta && this.obj3dmeta.widget) {
+                // we are good to go
+            } else {
+                // we do not have them
+                // init3d will re-enter this method and then should not hit this else statement
+                this.init3d();
+                return;
+            }
+            
             this.clear3dViewer();
           
             // get the user settings from the UI
